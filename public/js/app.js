@@ -210,8 +210,7 @@ socket.on("meeting:start", (data) => {
   ctx.meetingPlayers = data.alivePlayers;
   ctx.meetingEndsAt = data.endsAt;
   ctx.meetingPhase = data.phase;
-  ctx._vote = null; // Clear any previous vote
-  ctx.meetingVote = null;
+  // Note: don't clear _vote/meetingVote here - they come from room:state
   // Alarm on meeting request (gather phase) to alert everyone.
   if (data.phase === "gather") playAlarm();
   render();

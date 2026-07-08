@@ -62,11 +62,15 @@ function assignCards(room) {
       }
       crewOrdinal++;
     } else {
-      const count = Math.min(8, M);
-      indices = sample(
-        room.missions.map((_, i) => i),
-        count
-      );
+      // Impostors get same 5 consecutive missions as crewmates (from a random card)
+      const c = (Math.floor(Math.random() * 10) + 1);
+      cardId = c;
+      const winLen = Math.min(5, M);
+      const start = c - 1;
+      indices = [];
+      for (let m = 0; m < winLen; m++) {
+        indices.push((start + m) % M);
+      }
     }
 
     p.cardId = cardId;
