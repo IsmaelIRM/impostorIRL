@@ -145,9 +145,11 @@ meeting: room.meeting
               .filter((p) => p.alive)
               .map((p) => ({ id: p.id, name: p.name })),
             voteCast:
-              player.sessionToken != null
-                ? room.meeting.votes.get(player.sessionToken) || null
-                : null,
+              player.sessionToken != null && room.meeting.votes.has(player.sessionToken)
+                ? room.meeting.votes.get(player.sessionToken) === null
+                  ? "skip"
+                  : room.meeting.votes.get(player.sessionToken)
+                : undefined,
           }
         : null,
     missions: player.missions.map((m) => ({

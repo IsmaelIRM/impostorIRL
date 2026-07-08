@@ -1,10 +1,8 @@
 export function render(ctx) {
   const players = ctx.meetingPlayers || [];
-  // For UI: "skip" represents skip vote, playerId for player vote, null = no vote yet
-  // meetingVote: undefined=none, null=skip, string=playerId
-  const sel = ctx._vote || (ctx.meetingVote !== undefined && ctx.meetingVote !== null
-    ? ctx.meetingVote
-    : ctx.meetingVote === null ? "skip" : null);
+  // For UI: "skip" represents skip vote, playerId for player vote, undefined = no vote yet
+  // meetingVote: undefined=none, "skip"=skip, string=playerId
+  const sel = ctx._vote || ctx.meetingVote;
   const voting = ctx.meetingPhase === "voting";
 
   const opts = players
@@ -67,53 +65,11 @@ export function mount(ctx) {
   if (!voting) return;
 
   // Restore vote state from server on re-render
-  // meetingVote: undefined=none, null=skip, string=playerId
-  const hasVoted = ctx.meetingVote !== undefined;
-  const status = document.getElementById("vote-status");
-  if (hasVoted) {
-    const sel = ctx.meetingVote === null ? "skip" : ctx.meetingVote;
-    ctx._vote = sel;
-    status.textContent = "Voto registrado. Puedes cambiarlo.";
-    document.querySelectorAll(".vote-option").forEach((x) => {
-      x.classList.toggle("sel", x.dataset.target === sel);
-    });
-  }
-
-  document.querySelectorAll(".vote-option").forEach((el) => {
-    el.addEventListener("click", () => {
-      const t = el.dataset.target === "skip" ? null : el.dataset.target;
-      ctx._vote = el.dataset.target;
-      document
-        .querySelectorAll(".vote-option")
-        .forEach((x) => x.classList.toggle("sel", x === el));
-      socket.emit("meeting:vote", {
-        code: ctx.code,
-        sessionToken: ctx.sessionToken,
-        targetPlayerId: t,
-      });
-      document.getElementById("vote-status").textContent = "Voto registrado. Puedes cambiarlo.";
-    });
-  });
-
-  // Countdown uses the server's absolute endsAt, so late joiners stay in sync.
-  const endsAt = ctx.meetingEndsAt || Date.now() + 120000;
-  const cd = document.getElementById("cd");
-  const update = () => {
-    const left = Math.max(0, Math.ceil((endsAt - Date.now()) / 1000));
-    if (cd) cd.textContent = `${left}s restantes`;
-  };
-  update();
-  const t = setInterval(update, 500);
-  ctx.timers.push(t);
-}
-
-  if (!voting) return;
-
-  // Restore vote state from server on re-render
-  // meetingVote: null means no vote, stored value means skip or playerId
-  const sel = ctx.meetingVote === null && ctx.meetingVote !== undefined ? "skip" : (ctx.meetingVote || ctx._vote);
-  const status = document.getElementById("vote-status");
-  if (sel) {
+  // meetingVote: undefined=none, "skip"=skip, string=playerId
+  if (ctx.meetingVote !== undefined) {
+    ctx._vote = ctx.meetingVote;
+    const sel = ctx.meetingVote;
+    const status = document.getElementById("vote-status");
     status.textContent = "Voto registrado. Puedes cambiarlo.";
     document.querySelectorAll(".vote-option").forEach((x) => {
       x.classList.toggle("sel", x.dataset.target === sel);
