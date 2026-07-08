@@ -10,7 +10,7 @@ export function render(ctx) {
     .map(
       (p) => `
       <li class="${p.alive ? "" : "dead"} ${p.connected ? "" : "off"}">
-        <span>${escapeHtml(p.name)}${p.isAdmin ? '<span class="tag admin">ANFITRIÓN</span>' : ""}</span>
+        <span>${escapeHtml(p.name)} ${p.isAdmin ? '<span class="tag admin">ANFITRIÓN</span>' : ""}</span>
         ${
           ctx.isAdmin && room.status === "RUNNING"
             ? `<span class="tag" data-progress="${p.id}">–</span>`

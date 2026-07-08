@@ -29,3 +29,21 @@
 
 ## Known Issues
 - Audio alarm requires user interaction first on mobile (browser autoplay policy)
+
+### Admin Kick Player Feature
+
+#### Files Modified:
+- `public/js/screens/lobby.js` - Added kick button for each player in lobby, handler in mount()
+- `server.js` - Added `admin:kick` socket handler, `player:kicked` event
+- `public/js/app.js` - Added `player:kicked` event handler
+- `public/css/styles.css` - Added `.kick-btn` styling
+
+#### Changes Summary:
+
+**lobby.js lines 19-22**: Added kick button (`✕`) for each non-admin player when status is `LOBBY`, only visible to admin.
+
+**lobby.js lines 151-160**: Kick button click handler confirms and emits `admin:kick`.
+
+**server.js lines 471-482**: New handler that removes player from room and notifies kicked player.
+
+**app.js lines 222-229**: Handles `player:kicked` event to reset session for kicked player.
