@@ -441,6 +441,10 @@ label {
   margin-bottom: 8px;
   cursor: pointer;
   border: 2px solid transparent;
+  transition: opacity 0.15s ease;
+}
+.kill-option:hover {
+  opacity: 0.9;
 }
 .kill-option.disabled {
   opacity: 0.5;
