@@ -183,6 +183,8 @@ socket.on("task:progress", (data) => {
 });
 socket.on("meeting:resolve", (data) => {
   ctx.lastResolve = data;
+  ctx._vote = null; // Clear vote after meeting resolves
+  ctx.meetingVote = null;
   if (data.eliminatedName) {
     toast(
       data.tie
@@ -198,6 +200,8 @@ socket.on("player:killed", (data) => {
 });
 socket.on("game:won", (data) => {
   ctx.winner = { team: data.team, reason: data.reason };
+  ctx._vote = null;
+  ctx.meetingVote = null;
   render();
 });
 socket.on("game:alarm", () => playAlarm());
@@ -206,6 +210,8 @@ socket.on("meeting:start", (data) => {
   ctx.meetingPlayers = data.alivePlayers;
   ctx.meetingEndsAt = data.endsAt;
   ctx.meetingPhase = data.phase;
+  ctx._vote = null; // Clear any previous vote
+  ctx.meetingVote = null;
   // Alarm on meeting request (gather phase) to alert everyone.
   if (data.phase === "gather") playAlarm();
   render();
@@ -214,6 +220,8 @@ socket.on("room:reset", () => {
   ctx.sessionToken = null;
   ctx.me = null;
   ctx.room = null;
+  ctx._vote = null;
+  ctx.meetingVote = null;
   toast("La sala se reinició. Vuelve a unirte con el código.");
   render();
 });
