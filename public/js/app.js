@@ -183,8 +183,8 @@ socket.on("task:progress", (data) => {
 });
 socket.on("meeting:resolve", (data) => {
   ctx.lastResolve = data;
-  ctx._vote = null; // Clear vote after meeting resolves
-  ctx.meetingVote = null;
+  ctx._vote = undefined;
+  ctx.meetingVote = undefined;
   if (data.eliminatedName) {
     toast(
       data.tie
@@ -200,8 +200,8 @@ socket.on("player:killed", (data) => {
 });
 socket.on("game:won", (data) => {
   ctx.winner = { team: data.team, reason: data.reason };
-  ctx._vote = null;
-  ctx.meetingVote = null;
+  ctx._vote = undefined;
+  ctx.meetingVote = undefined;
   render();
 });
 socket.on("game:alarm", () => playAlarm());
@@ -219,8 +219,8 @@ socket.on("room:reset", () => {
   ctx.sessionToken = null;
   ctx.me = null;
   ctx.room = null;
-  ctx._vote = null;
-  ctx.meetingVote = null;
+  ctx._vote = undefined;
+  ctx.meetingVote = undefined;
   toast("La sala se reinició. Vuelve a unirte con el código.");
   render();
 });
