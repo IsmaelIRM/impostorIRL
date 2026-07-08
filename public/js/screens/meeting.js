@@ -1,6 +1,6 @@
 export function render(ctx) {
   const players = ctx.meetingPlayers || [];
-  const sel = ctx._vote || null;
+  const sel = ctx._vote || ctx.meetingVote || null;
   const voting = ctx.meetingPhase === "voting";
 
   const opts = players
@@ -8,14 +8,14 @@ export function render(ctx) {
       (p) => `
       <div class="vote-option ${sel === p.id ? "sel" : ""}" data-target="${p.id}">
         <span>${escapeHtml(p.name)}</span>
-        <span class="tag">votar</span>
+        <span class="vote-tag">✔</span>
       </div>`
     )
     .join("");
   const skip = `
     <div class="vote-option ${sel === "skip" ? "sel" : ""}" data-target="skip">
       <span>Saltar (no votar)</span>
-      <span class="tag">omitir</span>
+      <span class="vote-tag">↺</span>
     </div>`;
 
   // Gather phase: meeting is open but the admin hasn't started the timed vote yet.
@@ -62,9 +62,15 @@ export function mount(ctx) {
 
   if (!voting) return;
 
-  const sel = ctx._vote || null;
+  // Restore vote state from server on re-render
+  const sel = ctx._vote || ctx.meetingVote;
   const status = document.getElementById("vote-status");
-  if (sel) status.textContent = "Voto registrado. Puedes cambiarlo.";
+  if (sel) {
+    status.textContent = "Voto registrado. Puedes cambiarlo.";
+    document.querySelectorAll(".vote-option").forEach((x) => {
+      x.classList.toggle("sel", x.dataset.target === sel);
+    });
+  }
 
   document.querySelectorAll(".vote-option").forEach((el) => {
     el.addEventListener("click", () => {

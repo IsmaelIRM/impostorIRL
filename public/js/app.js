@@ -164,12 +164,13 @@ socket.on("room:state", (data) => {
   if (data.winner) {
     ctx.winner = { team: data.winner, reason: data.winnerReason };
   }
-  // Sync meeting state for late (re)joiners so the timer matches everyone else.
-  if (data.meeting && data.meeting.alivePlayers) {
-    ctx.meetingPlayers = data.meeting.alivePlayers;
-    ctx.meetingEndsAt = data.meeting.endsAt;
-    ctx.meetingPhase = data.meeting.phase;
-  }
+// Sync meeting state for late (re)joiners so the timer matches everyone else.
+   if (data.meeting && data.meeting.alivePlayers) {
+     ctx.meetingPlayers = data.meeting.alivePlayers;
+     ctx.meetingEndsAt = data.meeting.endsAt;
+     ctx.meetingPhase = data.meeting.phase;
+     ctx.meetingVote = data.meeting.voteCast; // restore vote state
+   }
   render();
 });
 socket.on("task:progress", (data) => {

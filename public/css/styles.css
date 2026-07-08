@@ -426,9 +426,18 @@ label {
   margin-bottom: 8px;
   cursor: pointer;
   border: 2px solid transparent;
+  transition: opacity 0.15s ease;
 }
 .vote-option.sel {
   border-color: var(--accent);
+}
+.vote-option.sel .vote-tag {
+  color: var(--good);
+}
+.vote-tag {
+  font-size: 1rem;
+  color: var(--muted);
+  font-weight: 700;
 }
 
 .kill-option {
