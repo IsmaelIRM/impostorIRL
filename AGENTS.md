@@ -12,7 +12,7 @@
 
 #### Changes Summary:
 
-**1. QR Code Generation (lobby.js lines 38-43, 117-127)**
+**1. QR Code Generation (lobby.js lines 117-127)**
 - Added "📱 QR para compartir" button in lobby screen
 - Modal contains `#qr-svg` div with white background and 12px padding
 - Uses `window.QRCode` library to generate scannable QR code
@@ -22,7 +22,7 @@
 - `playAlarm()` triggers when `meeting:start` received with `phase: "gather"`
 - Alerts all players before admin starts voting
 
-**3. Styling (styles.css lines 342, 356-366)**
+**3. Styling (styles.css lines 313-322, 354-364)**
 - `#qr-modal .map-wrap`: dark card background (`var(--card)`)
 - `#qr-svg`: white background, 12px padding, 8px border-radius, responsive width
 - Modal clicking closes QR popup
