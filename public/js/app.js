@@ -169,7 +169,10 @@ socket.on("room:state", (data) => {
       ctx.meetingPlayers = data.meeting.alivePlayers;
       ctx.meetingEndsAt = data.meeting.endsAt;
       ctx.meetingPhase = data.meeting.phase;
-      ctx.meetingVote = data.meeting.voteCast; // restore vote target (id or null for skip)
+      ctx.meetingVote = data.meeting.voteCast; // restore vote target
+      if (ctx.screen === "meeting" && ctx.meetingVote !== undefined) {
+        render(); // Re-render to show restored vote
+      }
     }
   render();
 });

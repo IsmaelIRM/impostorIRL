@@ -64,11 +64,11 @@ export function mount(ctx) {
 
   if (!voting) return;
 
-  // Restore vote state from server on re-render
+  // Restore vote state from server as source of truth (for reconnects)
   // meetingVote: undefined=none, "skip"=skip, string=playerId
   if (ctx.meetingVote !== undefined) {
-    ctx._vote = ctx.meetingVote;
     const sel = ctx.meetingVote;
+    ctx._vote = sel;
     const status = document.getElementById("vote-status");
     status.textContent = "Voto registrado. Puedes cambiarlo.";
     document.querySelectorAll(".vote-option").forEach((x) => {
