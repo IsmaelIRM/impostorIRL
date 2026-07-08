@@ -104,6 +104,63 @@ El anfitrión puede subir un PNG (máx. 5 MB) o pegar una URL en el panel de anf
 - El sonido de alarma necesita un toque en pantalla la primera vez (política de autoplay móvil): toca la pantalla al unirte.
 - Confianza: los roles solo se envían al socket del dueño; pensado para una fiesta tranquila, no es a prueba de trampas.
 
+## Documentación técnica
+
+Ver [ROADMAP_AND_ARCHITECTURE.md](ROADMAP_AND_ARCHITECTURE.md) para detalles de arquitectura y plan de desarrollo.
+
+### Estructura del proyecto
+
+```
+amongus/
+├── server.js           # Servidor Express + Socket.IO
+├── src/
+│   ├── rooms.js        # Gestión de salas, jugadores y vistas
+│   ├── cards.js        # Asignación de roles y misiones
+│   └── win.js          # Condiciones de victoria
+├── public/
+│   ├── index.html      # Entrada HTML
+│   ├── css/styles.css  # Estilos
+│   ├── js/
+│   │   ├── app.js      # App principal, sockets, router
+│   │   ├── qrcode.min.js  # Librería QRCode.js
+│   │   └── screens/    # Vistas: landing, lobby, player, meeting, results
+│   └── maps/           # Imágenes de mapa
+├── Dockerfile
+└── docker-compose.yml
+```
+
+### Eventos Socket.IO (API)
+
+| Evento | Dirección | Payload |
+|--------|-----------|---------|
+| `room:create` | cliente → servidor | `{hostName}` |
+| `room:join` | cliente → servidor | `{code, name, sessionToken?}` |
+| `lobby:update` | servidor → sala | Estado lobby (sin roles) |
+| `game:started` | servidor → jugador (privado) | Rol, misiones, cardId |
+| `room:state` | servidor → jugador (privado) | Estado personalizado con misiones |
+| `task:toggle` | cliente → servidor | `{missionId}` |
+| `task:progress` | servidor → admin | `{playerId, done, total}` |
+| `impostor:kill` | cliente → servidor | `{targetPlayerId}` |
+| `meeting:report` | cliente → servidor | `{sessionToken}` |
+| `meeting:start` | servidor → sala | `{alivePlayers, phase, endsAt}` |
+| `admin:startVoting` | admin → servidor | Inicia votación |
+| `meeting:vote` | cliente → servidor | `{targetPlayerId}` |
+| `meeting:resolve` | servidor → sala | Resultado de votación |
+| `game:won` | servidor → sala | `{team, reason}` |
+| `game:alarm` | servidor → sala | Sonido alarma (victoria tripulación) |
+| `player:killed` | servidor → sala | `{victimId, victimName}` |
+| `admin:reset` | admin → servidor | Reinicia sala |
+| `admin:newgame` | admin → servidor | Nueva partida misma sala |
+
+### Reglas de juego
+
+- **Misiones**: Cada tripulante recibe 5 misiones consecutivas (wrap-around) de la lista compartida.
+- **Impostores**: Reciben un subconjunto aleatorio de misiones como cobertura.
+- **Eliminación**: Tripulante votado → fantasma (puede seguir misiones). Impostor votado → eliminado.
+- **Victoria tripulación**: (a) todas las misiones completadas, o (b) todos los impostores eliminados.
+- **Victoria impostores**: impostores vivos ≥ tripulantes vivos, o timeout.
+- **Umbral de votación**: necesario >40% de votos para eliminar.
+
 ## Características recientes
 
 ### Botón QR para compartir
