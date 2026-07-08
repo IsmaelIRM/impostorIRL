@@ -430,6 +430,30 @@ label {
 .vote-option.sel {
   border-color: var(--accent);
 }
+
+.kill-option {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 12px 14px;
+  background: var(--impostor);
+  border-radius: 12px;
+  margin-bottom: 8px;
+  cursor: pointer;
+  border: 2px solid transparent;
+}
+.kill-option.disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+.kill-tag {
+  font-size: 0.8rem;
+  color: #fff;
+  font-weight: 700;
+}
+.admin-game-panel {
+  border: 2px dashed var(--impostor);
+}
 .progress {
   height: 8px;
   background: var(--bg2);

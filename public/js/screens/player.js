@@ -33,6 +33,11 @@ export function render(ctx) {
       <button id="btn-role" class="warn">👁 Ver mi rol</button>
       <p class="tiny center" style="margin-top:6px">Tápalo y pulsa "Salir" tras leerlo para que nadie lo vea.</p>
     </div>
+    ${ctx.isAdmin ? `
+    <div class="card admin-game-panel">
+      <h3>⚙️ Panel de anfitrión</h3>
+      <button class="danger" id="btn-reset-game">♻️ Reiniciar partida</button>
+    </div>` : ""}
     <div class="card">
       <h3>Tus misiones</h3>
       ${missionHtml}
@@ -119,6 +124,15 @@ export function mount(ctx) {
   const roleBtn = document.getElementById("btn-role");
   if (roleBtn) roleBtn.addEventListener("click", () => showRole(ctx));
 
+  // Admin reset button during game
+  const resetBtn = document.getElementById("btn-reset-game");
+  if (resetBtn) {
+    resetBtn.addEventListener("click", () => {
+      if (!confirm("¿Reiniciar la partida? Se pierde el progreso actual.")) return;
+      socket.emit("admin:reset", { code: ctx.code, adminToken: ctx.adminToken });
+    });
+  }
+
   // anti-shoulder-surf: hide if the app is backgrounded
   window.addEventListener("blur", hideRole);
   document.addEventListener("visibilitychange", () => {
@@ -177,16 +191,16 @@ function renderKillBox(ctx) {
   inner += targets
     .map(
       (t) => `
-      <div class="vote-option kill-opt ${cdLeft > 0 ? "disabled" : ""}" data-target="${t.id}">
+      <div class="kill-option ${cdLeft > 0 ? "disabled" : ""}" data-target="${t.id}">
         <span>${escapeHtml(t.name)}</span>
-        <span class="tag">eliminar</span>
+        <span class="kill-tag">✖</span>
       </div>`
     )
     .join("");
 
   box.innerHTML = inner;
 
-  box.querySelectorAll(".kill-opt").forEach((el) => {
+  box.querySelectorAll(".kill-option").forEach((el) => {
     if (cdLeft > 0) return;
     el.addEventListener("click", () => {
       ctx.socket.emit("impostor:kill", {
