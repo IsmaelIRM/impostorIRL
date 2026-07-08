@@ -136,19 +136,20 @@ function playerView(room, player) {
     mapImageUrl: room.mapImageUrl,
     winner: room.winner,
     winnerReason: room.winnerReason,
-    meeting: room.meeting
-      ? {
-          reporterId: room.meeting.reporterId,
-          endsAt: room.meeting.endsAt,
-          phase: room.meeting.phase || "voting",
-          alivePlayers: Array.from(room.players.values())
-            .filter((p) => p.alive)
-            .map((p) => ({ id: p.id, name: p.name })),
-          voteCast:
-            player.sessionToken != null &&
-            room.meeting.votes.has(player.sessionToken),
-        }
-      : null,
+meeting: room.meeting
+        ? {
+            reporterId: room.meeting.reporterId,
+            endsAt: room.meeting.endsAt,
+            phase: room.meeting.phase || "voting",
+            alivePlayers: Array.from(room.players.values())
+              .filter((p) => p.alive)
+              .map((p) => ({ id: p.id, name: p.name })),
+            voteCast:
+              player.sessionToken != null
+                ? room.meeting.votes.get(player.sessionToken) || null
+                : null,
+          }
+        : null,
     missions: player.missions.map((m) => ({
       id: m.missionId,
       name: missionInfo[m.missionId] ? missionInfo[m.missionId].name : "",

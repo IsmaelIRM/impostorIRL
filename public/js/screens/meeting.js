@@ -1,6 +1,7 @@
 export function render(ctx) {
   const players = ctx.meetingPlayers || [];
-  const sel = ctx._vote || ctx.meetingVote || null;
+  // Convert null (skip) to "skip" for comparison
+  const sel = ctx._vote || (ctx.meetingVote != null ? (ctx.meetingVote === null ? "skip" : ctx.meetingVote) : null);
   const voting = ctx.meetingPhase === "voting";
 
   const opts = players
@@ -63,12 +64,14 @@ export function mount(ctx) {
   if (!voting) return;
 
   // Restore vote state from server on re-render
-  const sel = ctx._vote || ctx.meetingVote;
+  // meetingVote is null (skip) or a playerId
+  const sel = ctx.meetingVote != null ? (ctx.meetingVote === null ? "skip" : ctx.meetingVote) : null;
   const status = document.getElementById("vote-status");
-  if (sel) {
+  if (sel !== null || ctx._vote) {
+    const actualSel = ctx._vote || (ctx.meetingVote === null ? "skip" : ctx.meetingVote);
     status.textContent = "Voto registrado. Puedes cambiarlo.";
     document.querySelectorAll(".vote-option").forEach((x) => {
-      x.classList.toggle("sel", x.dataset.target === sel);
+      x.classList.toggle("sel", x.dataset.target === actualSel);
     });
   }
 

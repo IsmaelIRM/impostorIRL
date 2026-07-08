@@ -166,11 +166,11 @@ socket.on("room:state", (data) => {
   }
 // Sync meeting state for late (re)joiners so the timer matches everyone else.
    if (data.meeting && data.meeting.alivePlayers) {
-     ctx.meetingPlayers = data.meeting.alivePlayers;
-     ctx.meetingEndsAt = data.meeting.endsAt;
-     ctx.meetingPhase = data.meeting.phase;
-     ctx.meetingVote = data.meeting.voteCast; // restore vote state
-   }
+      ctx.meetingPlayers = data.meeting.alivePlayers;
+      ctx.meetingEndsAt = data.meeting.endsAt;
+      ctx.meetingPhase = data.meeting.phase;
+      ctx.meetingVote = data.meeting.voteCast; // restore vote target (id or null for skip)
+    }
   render();
 });
 socket.on("task:progress", (data) => {
