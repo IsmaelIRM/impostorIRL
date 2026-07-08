@@ -10,10 +10,15 @@ export function render(ctx) {
     .map(
       (p) => `
       <li class="${p.alive ? "" : "dead"} ${p.connected ? "" : "off"}">
-        <span>${escapeHtml(p.name)} ${p.isAdmin ? '<span class="tag admin">ANFITRIÓN</span>' : ""}</span>
+        <span>${escapeHtml(p.name)}${p.isAdmin ? '<span class="tag admin">ANFITRIÓN</span>' : ""}</span>
         ${
           ctx.isAdmin && room.status === "RUNNING"
             ? `<span class="tag" data-progress="${p.id}">–</span>`
+            : ""
+        }
+        ${
+          ctx.isAdmin && !p.isAdmin && room.status === "LOBBY"
+            ? `<button class="kick-btn" data-kick="${p.id}" title="Expulsar">✕</button>`
             : ""
         }
       </li>`
@@ -142,6 +147,17 @@ export function mount(ctx) {
 
   if (!ctx.isAdmin) return;
   const socket = ctx.socket;
+
+  // Kick player buttons
+  document.querySelectorAll(".kick-btn").forEach((b) => {
+    b.addEventListener("click", () => {
+      const playerId = b.dataset.kick;
+      const playerName = b.closest("li").textContent.split("ANFITRIÓN")[0].trim();
+      if (confirm(`¿Expulsar a ${playerName} de la sala?`)) {
+        socket.emit("admin:kick", { code: ctx.code, adminToken: ctx.adminToken, playerId });
+      }
+    });
+  });
 
   document.querySelectorAll(".imp-set").forEach((b) =>
     b.addEventListener("click", () => {

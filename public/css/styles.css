@@ -489,3 +489,11 @@ label {
 .admin-panel {
   border: 2px dashed var(--warn);
 }
+.kick-btn {
+  width: auto;
+  padding: 4px 10px;
+  background: var(--impostor);
+  color: #fff;
+  font-size: 0.8rem;
+  margin-left: auto;
+}

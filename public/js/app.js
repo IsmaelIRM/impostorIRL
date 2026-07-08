@@ -216,6 +216,15 @@ socket.on("room:reset", () => {
   toast("La sala se reinició. Vuelve a unirte con el código.");
   render();
 });
+socket.on("player:kicked", (data) => {
+  if (ctx.playerId === data.playerId) {
+    ctx.sessionToken = null;
+    ctx.me = null;
+    ctx.room = null;
+    toast("Has sido expulsado de la sala.");
+    render();
+  }
+});
 
 function renamePlayer(name) {
   socket.emit("player:rename", { code: ctx.code, sessionToken: ctx.sessionToken, name });

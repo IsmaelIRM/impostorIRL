@@ -468,6 +468,18 @@ io.on("connection", (socket) => {
       }
     }
   });
+
+  // Admin kicks a player from lobby
+  socket.on("admin:kick", (payload) => {
+    const room = getRoom(payload && payload.code);
+    if (!room || room.adminToken !== payload.adminToken) return;
+    if (room.status !== "LOBBY") return;
+    const player = room.players.get(payload.playerId);
+    if (!player || player.isAdmin) return;
+    room.players.delete(payload.playerId);
+    io.to(room.code).emit("player:kicked", { playerId: payload.playerId });
+    emitLobby(room);
+  });
 });
 
 const PORT = process.env.PORT || 3000;
