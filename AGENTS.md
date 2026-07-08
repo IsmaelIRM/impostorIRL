@@ -44,6 +44,14 @@
 
 **lobby.js lines 151-160**: Kick button click handler confirms and emits `admin:kick`.
 
-**server.js lines 471-482**: New handler that removes player from room and notifies kicked player.
+**server.js lines 472-482**: New handler that removes player from room and notifies kicked player.
 
-**app.js lines 222-229**: Handles `player:kicked` event to reset session for kicked player.
+**app.js lines 219-227**: Handles `player:kicked` event to reset session for kicked player.
+
+### Admin Game Panel
+
+**player.js lines 36-40**: Added admin panel during RUNNING status with "Reiniciar partida" button.
+
+**player.js lines 120-126**: Added reset button handler that emits `admin:reset`.
+
+**styles.css line 458-460**: Added `.admin-game-panel` styling (dashed impostor border).
