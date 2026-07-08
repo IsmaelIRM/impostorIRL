@@ -38,7 +38,7 @@ export function render(ctx) {
     </div>
     <div id="qr-modal" class="modal hidden">
       <div class="map-wrap">
-        <div id="qr-svg" style="background:#fff;width:250px;height:250px;border-radius:8px;overflow:hidden"></div>
+        <div id="qr-svg"></div>
         <button class="ghost" id="btn-qr-close" style="margin-top:12px">Cerrar</button>
       </div>
     </div>

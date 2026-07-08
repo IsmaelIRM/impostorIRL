@@ -320,6 +320,25 @@ label {
   align-items: center;
   max-width: 90vw;
 }
+#qr-svg {
+  background: #fff;
+  padding: 12px;
+  border-radius: 8px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  width: 274px;
+  height: 274px;
+}
+#qr-svg canvas,
+#qr-svg img {
+  display: block;
+  width: 250px;
+  height: 250px;
+}
+.modal img {
+  border-radius: 10px;
+}
 #qr-modal img {
   max-width: 100%;
   display: block;
