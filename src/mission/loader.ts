@@ -1,6 +1,19 @@
 import { Injectable, OnModuleInit } from "@nestjs/common";
 import FastGlob from "fast-glob";
-import { MissionDefinition, MissionMetadata } from "./types";
+import { MissionDefinition } from "./types";
+
+interface MissionMetadata {
+  id: string;
+  name: string;
+  isInteractive: boolean;
+  scope: string;
+  endsGame: boolean;
+  weight: number;
+  version: string;
+  apiVersion: string;
+  description?: string;
+  schema?: Record<string, any>;
+}
 
 @Injectable()
 export class MissionLoader implements OnModuleInit {
