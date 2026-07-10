@@ -598,5 +598,14 @@ missionLoader.loadAll().then(() => {
   console.log("Loaded missions:", missionLoader.list().map(m => m.id).join(", "));
 });
 
+// Background timer for sabotage timeout and time limit
+setInterval(() => {
+  for (const room of require("./src/rooms").rooms.values()) {
+    if (room.status === "RUNNING" && !room.endedAt) {
+      recomputeWin(room);
+    }
+  }
+}, 30000); // Check every 30 seconds
+
 const PORT = process.env.PORT || 3000;
 server.listen(PORT, () => console.log(`Real-Life Among Us listening on :${PORT}`));
