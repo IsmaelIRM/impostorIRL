@@ -1,5 +1,9 @@
 # AGENTS.md - Among Us Real Life Project
 
+## HowToConnect
+
+Open `http://localhost:5173` in your browser after running `npm run dev:web`.
+
 ## Recent Changes
 
 ### QR Link Button & Alarm on Meeting Request
