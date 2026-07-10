@@ -9,7 +9,7 @@
   ],
   "scripts": {
     "start": "node server.js",
-    "dev:server": "cd apps/server && npm run dev",
+    "dev:server": "node server.js",
     "dev:web": "vite",
     "dev": "concurrently \"npm run dev:server\" \"npm run dev:web\""
   },

@@ -2,7 +2,7 @@
 
 ## HowToConnect
 
-Open `http://localhost:5173` in your browser after running `npm run dev:web`.
+Open `http://localhost:5173` in your browser after running `npm run dev`.
 
 ## Recent Changes
 
@@ -17,6 +17,7 @@ Open `http://localhost:5173` in your browser after running `npm run dev:web`.
 - Created AdminPanel with tabs (Templates, Missions, Sabotages, Timers)
 - Added SchemaForm component for JSON schema auto-generation
 - Implemented mission modules: draw, brick, basket, nerf, photo, pool, sabotage-nfc, sabotage-core
+- **Note**: Original `server.js` remains operational; `apps/server/src/` is the new architecture (under development)
 
 ### QR Link Button & Alarm on Meeting Request
 

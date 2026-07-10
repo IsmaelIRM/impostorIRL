@@ -1,7 +1,7 @@
 {
   "compilerOptions": {
     "target": "ES2022",
-    "module": "ESNext",
+    "module": "CommonJS",
     "moduleResolution": "NodeNext",
     "esModuleInterop": true,
     "allowSyntheticDefaultImports": true,
@@ -12,8 +12,12 @@
     "outDir": "./dist",
     "rootDir": "./src",
     "experimentalDecorators": true,
-    "emitDecoratorMetadata": true
+    "emitDecoratorMetadata": true,
+    "baseUrl": ".",
+    "paths": {
+      "@/*": ["../src/*"]
+    }
   },
-  "include": ["src/**/*"],
+  "include": ["src/**/*", "../src/**/*"],
   "exclude": ["node_modules", "dist"]
 }
