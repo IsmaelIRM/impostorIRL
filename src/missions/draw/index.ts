@@ -1,5 +1,5 @@
-import { Mission } from "../../src/mission/decorator";
-import { Player, Mission as MissionType, AssignedMission } from "../../src/mission/types";
+import { Mission } from "../../mission/decorator";
+import { Player, Mission as MissionType, AssignedMission } from "../../mission/types";
 
 @Mission({
   id: "draw",

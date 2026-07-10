@@ -1,4 +1,4 @@
-import { Mission } from "../../src/mission/decorator";
+import { Mission } from "../../mission/decorator";
 
 @Mission({
   id: "sabotage-core",
