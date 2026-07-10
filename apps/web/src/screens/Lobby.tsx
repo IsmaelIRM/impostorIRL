@@ -1,53 +1,66 @@
-import React, { useState, useEffect, useRef } from "react";
+import React, { useState, useEffect } from "react";
 
 interface LobbyScreenProps {
   socket: any;
   code: string;
+  room: any;
+  isAdmin: boolean;
+  adminToken: string | null;
 }
 
-export function LobbyScreen({ socket, code }: LobbyScreenProps) {
-  const [room, setRoom] = useState<any>(null);
-  const [isAdmin, setIsAdmin] = useState(false);
+export function LobbyScreen({ socket, code, room, isAdmin, adminToken }: LobbyScreenProps) {
+  const [localRoom, setLocalRoom] = useState(room);
 
   useEffect(() => {
-    socket.on("lobby:update", (data: any) => {
-      setRoom(data);
-      setIsAdmin(data?.isAdmin || false);
-    });
-    return () => socket.off("lobby:update");
-  }, []);
+    socket.on("lobby:update", setLocalRoom);
+    return () => socket.off("lobby:update", setLocalRoom);
+  }, [socket]);
 
-  if (!room) return <div className="loading">Cargando...</div>;
+  useEffect(() => {
+    setLocalRoom(room);
+  }, [room]);
+
+  if (!localRoom) return <div className="loading">Cargando...</div>;
 
   return (
     <div>
-      <h1>Sala {room.code}</h1>
-      <div className="code-badge">{room.code}</div>
+      <h1>Sala {localRoom.code}</h1>
+      <div className="code-badge">{localRoom.code}</div>
       <p className="sub">Comparte este código o el enlace</p>
 
       <div className="card">
         <label>Enlace para unirse</label>
-        <input readOnly value={room.joinUrl || ""} style={{ marginBottom: "8px" }} />
-        <button className="ghost" onClick={() => navigator.clipboard.writeText(room.joinUrl)}>
+        <input readOnly value={localRoom.joinUrl || ""} style={{ marginBottom: "8px" }} />
+        <button className="ghost" onClick={() => navigator.clipboard.writeText(localRoom.joinUrl)}>
           Copiar enlace
         </button>
-        {isAdmin && (
-          <button className="ghost" style={{ marginTop: "8px" }} onClick={() => navigator.clipboard.writeText(room.adminUrl)}>
+        {isAdmin && localRoom.adminUrl && (
+          <button className="ghost" style={{ marginTop: "8px" }} onClick={() => navigator.clipboard.writeText(localRoom.adminUrl)}>
             Copiar enlace de anfitrión
           </button>
         )}
       </div>
 
       <div className="card">
-        <h3>Jugadores ({room.players?.length || 0})</h3>
+        <h3>Jugadores ({localRoom.players?.length || 0})</h3>
         <ul className="players">
-          {room.players?.map((p: any) => (
+          {localRoom.players?.map((p: any) => (
             <li key={p.id} className={!p.connected ? "off" : ""}>
               <span>{p.name} {p.isAdmin && <span className="tag admin">ANFITRIÓN</span>}</span>
             </li>
           ))}
         </ul>
       </div>
+
+      {isAdmin && (
+        <div className="card admin-panel">
+          <h3>⚙️ Panel de anfitrión</h3>
+          <p className="tiny">Configura la partida antes de iniciar</p>
+          <button className="good" onClick={() => socket.emit("admin:start", { code, adminToken })}>
+            ▶ Comenzar partida
+          </button>
+        </div>
+      )}
     </div>
   );
 }
