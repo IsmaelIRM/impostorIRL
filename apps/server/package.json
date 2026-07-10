@@ -1,0 +1,30 @@
+{
+  "name": "@amongus/server",
+  "version": "1.0.0",
+  "main": "src/main.ts",
+  "license": "UNLICENSED",
+  "scripts": {
+    "start": "node dist/main.js",
+    "dev": "tsx watch src/main.ts",
+    "build": "tsc"
+  },
+  "dependencies": {
+    "@nestjs/common": "^11.0.0",
+    "@nestjs/core": "^11.0.0",
+    "@nestjs/graphql": "^12.0.0",
+    "@nestjs/platform-express": "^11.0.0",
+    "@nestjs/websockets": "^11.0.0",
+    "graphql": "^16.9.0",
+    "graphql-ws": "^5.14.0",
+    "ioredis": "^5.4.0",
+    "fast-glob": "^3.3.0",
+    "graphql-tag": "^2.12.0",
+    "uuid": "^10.0.0"
+  },
+  "devDependencies": {
+    "@types/node": "^22.0.0",
+    "ts-node": "^10.9.0",
+    "tsx": "^4.19.0",
+    "typescript": "^5.5.0"
+  }
+}
