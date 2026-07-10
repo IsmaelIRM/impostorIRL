@@ -104,12 +104,8 @@ app.get("/api/missions", (req, res) => {
   res.json({ missions: room.missions.map(m => ({ id: m.id, name: m.name, zone: m.zone })) });
 });
 
-// List templates
+// List templates (public endpoint)
 app.get("/api/templates", (req, res) => {
-  const room = getRoom(req.query.code);
-  if (!room || room.adminToken !== req.query.adminToken) {
-    return res.status(403).json({ error: "No autorizado." });
-  }
   try {
     const files = require("fs").readdirSync(path.join(__dirname, "templates"));
     const templates = files

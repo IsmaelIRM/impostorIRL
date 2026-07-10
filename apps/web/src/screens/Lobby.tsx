@@ -53,8 +53,8 @@ export function LobbyScreen({ socket, code, room, isAdmin, adminToken }: LobbySc
         </ul>
       </div>
 
-      {isAdmin && (
-        <AdminPanel code={code} adminToken={adminToken || ""} socket={socket} />
+      {isAdmin && localRoom.code && adminToken && (
+        <AdminPanel code={localRoom.code} adminToken={adminToken} socket={socket} missions={localRoom.missions || []} />
       )}
     </div>
   );

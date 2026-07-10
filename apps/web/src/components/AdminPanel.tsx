@@ -4,63 +4,27 @@ interface AdminPanelProps {
   code: string;
   adminToken: string;
   socket?: any;
+  missions?: any[];
+  templates?: any[];
 }
 
-export function AdminPanel({ code, adminToken, socket }: AdminPanelProps) {
+export function AdminPanel({ code, adminToken, socket, missions: initialMissions = [], templates: initialTemplates = [] }: AdminPanelProps) {
   const [activeTab, setActiveTab] = useState<"templates" | "missions" | "sabotages" | "timers">("templates");
-  const [missions, setMissions] = useState<any[]>([]);
-  const [templates, setTemplates] = useState<any[]>([]);
-  const [moduleFile, setModuleFile] = useState<File | null>(null);
+  const [missions, setMissions] = useState<any[]>(initialMissions);
+  const [templates, setTemplates] = useState<any[]>(initialTemplates);
 
   useEffect(() => {
-    if (code && adminToken) {
-      fetchMissions();
-      fetchTemplates();
-    }
-  }, [code, adminToken]);
+    setMissions(initialMissions);
+  }, [initialMissions]);
 
-  if (!code || !adminToken) return null;
-
-  const fetchMissions = async () => {
-    if (!code || !adminToken) return;
-    try {
-      const res = await fetch(`/api/missions?code=${code}&adminToken=${adminToken}`);
-      if (!res.ok) return;
-      const data = await res.json();
-      setMissions(data.missions || []);
-    } catch (e) {
-      console.error("Fetch missions error:", e);
-    }
-  };
-
-  const fetchTemplates = async () => {
-    if (!code || !adminToken) return;
-    try {
-      const res = await fetch(`/api/templates?code=${code}&adminToken=${adminToken}`);
-      if (!res.ok) return;
-      const data = await res.json();
-      setTemplates(data.templates || []);
-    } catch (e) {
-      console.error("Fetch templates error:", e);
-    }
-  };
-
-  const uploadModule = async () => {
-    if (!moduleFile) return;
-    const form = new FormData();
-    form.append("file", moduleFile);
-    try {
-      const res = await fetch(`/api/modules?code=${code}&adminToken=${adminToken}`, {
-        method: "POST",
-        body: form,
-      });
-      const data = await res.json();
-      if (data.success) fetchMissions();
-      else alert(data.error);
-    } catch (e) {
-      alert("Upload failed");
-    }
-  };
+  useEffect(() => {
+    setTemplates(initialTemplates);
+    // Also fetch available templates (no auth needed)
+    fetch("/api/templates")
+      .then(r => r.json())
+      .then(d => setTemplates(d.templates || []))
+      .catch(() => {});
+  }, [initialTemplates]);
 
   const startGame = () => {
     socket?.emit("admin:start", { code, adminToken });
@@ -89,24 +53,19 @@ export function AdminPanel({ code, adminToken, socket }: AdminPanelProps) {
         return (
           <div>
             <h3>Misiones disponibles</h3>
-            <button className="ghost" onClick={fetchMissions}>Refresh</button>
-            {missions.length === 0 && <p className="tiny">No missions loaded</p>}
+            {missions.length === 0 && <p className="tiny">No hay misiones configuradas</p>}
             {missions.map((m) => (
               <div key={m.id} className="mission-item">
-                <span>{m.name} ({m.scope})</span>
+                <span>{m.name} ({m.zone})</span>
               </div>
             ))}
-            <div style={{ marginTop: "1rem" }}>
-              <input type="file" accept=".zip" onChange={(e) => setModuleFile(e.target.files?.[0] || null)} />
-              <button className="good" onClick={uploadModule} disabled={!moduleFile}>Upload Module</button>
-            </div>
           </div>
         );
       case "sabotages":
         return (
           <div>
             <h3>Sabotajes</h3>
-            <p className="tiny">Configure sabotage cooldown and types in timers tab.</p>
+            <p className="tiny">Configure sabotage cooldown and types in times tab.</p>
           </div>
         );
       case "timers":
