@@ -3,7 +3,7 @@ import { io } from "socket.io-client";
 import { LobbyScreen } from "./screens/Lobby";
 import { PlayerScreen } from "./screens/Player";
 
-const socket = io();
+const socket = io({ path: "/socket.io" });
 
 export default function App() {
   const [view, setView] = useState<"landing" | "lobby" | "player" | "meeting" | "results">("landing");
