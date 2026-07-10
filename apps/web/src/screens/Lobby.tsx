@@ -1,71 +1,53 @@
-import React, { useState, useEffect } from "react";
-import { io } from "socket.io-client";
+import React, { useState, useEffect, useRef } from "react";
 
-interface LobbyProps {
+interface LobbyScreenProps {
   socket: any;
   code: string;
 }
 
-export function LobbyScreen({ socket, code }: LobbyProps) {
+export function LobbyScreen({ socket, code }: LobbyScreenProps) {
   const [room, setRoom] = useState<any>(null);
-  const [newPlayerName, setNewPlayerName] = useState("");
+  const [isAdmin, setIsAdmin] = useState(false);
 
   useEffect(() => {
-    socket.on("lobby:update", setRoom);
-    return () => socket.off("lobby:update", setRoom);
-  }, []);
-
-  const addMission = () => {
-    const id = crypto.randomUUID().slice(0, 8);
-    socket.emit("admin:configure", {
-      code,
-      adminToken: room?.adminToken,
-      missions: room?.missions?.map(m => ({ id: m.id, name: m.name, zone: m.zone })) 
+    socket.on("lobby:update", (data: any) => {
+      setRoom(data);
+      setIsAdmin(data?.isAdmin || false);
     });
-  };
+    return () => socket.off("lobby:update");
+  }, []);
 
   if (!room) return <div className="loading">Cargando...</div>;
 
   return (
     <div>
-      <h1>Among Us Real Life</h1>
-      <p className="sub">Sala: <strong>{room.code}</strong></p>
-      
+      <h1>Sala {room.code}</h1>
+      <div className="code-badge">{room.code}</div>
+      <p className="sub">Comparte este código o el enlace</p>
+
+      <div className="card">
+        <label>Enlace para unirse</label>
+        <input readOnly value={room.joinUrl || ""} style={{ marginBottom: "8px" }} />
+        <button className="ghost" onClick={() => navigator.clipboard.writeText(room.joinUrl)}>
+          Copiar enlace
+        </button>
+        {isAdmin && (
+          <button className="ghost" style={{ marginTop: "8px" }} onClick={() => navigator.clipboard.writeText(room.adminUrl)}>
+            Copiar enlace de anfitrión
+          </button>
+        )}
+      </div>
+
       <div className="card">
         <h3>Jugadores ({room.players?.length || 0})</h3>
         <ul className="players">
           {room.players?.map((p: any) => (
             <li key={p.id} className={!p.connected ? "off" : ""}>
-              <span>{p.name}</span>
-              <span className="tag">{p.isAdmin ? "HOST" : "Jugador"}</span>
+              <span>{p.name} {p.isAdmin && <span className="tag admin">ANFITRIÓN</span>}</span>
             </li>
           ))}
         </ul>
       </div>
-
-      <div className="card">
-        <h3>Misiones ({room.missions?.length || 0})</h3>
-        <ul className="players">
-          {room.missions?.map((m: any) => (
-            <li key={m.id}>
-              <span>{m.name} (Zona: {m.zone || "?"})</span>
-              <span className="tag">{m.missionId}</span>
-            </li>
-          ))}
-        </ul>
-      </div>
-
-      {room.players?.some((p: any) => p.isAdmin) && (
-        <div className="card admin-panel">
-          <h3>⚙️ Anfitrión</h3>
-          <p className="tiny">Configura la partida antes de iniciar</p>
-          <div className="row">
-            <button onClick={() => socket.emit("admin:start", { code, adminToken: room.adminToken })}>
-              Iniciar partida
-            </button>
-          </div>
-        </div>
-      )}
     </div>
   );
 }
