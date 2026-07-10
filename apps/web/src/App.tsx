@@ -4,7 +4,7 @@ import { LobbyScreen } from "./screens/Lobby";
 import { PlayerScreen } from "./screens/Player";
 import { LandingScreen } from "./screens/Landing";
 
-const socket = io({ path: "/socket.io" });
+const socket = io("http://localhost:3002");
 
 export default function App() {
   const [view, setView] = useState<"landing" | "lobby" | "player" | "meeting" | "results">("landing");
