@@ -2,7 +2,7 @@ import { Module } from "@nestjs/common";
 import { GraphQLModule } from "@nestjs/graphql";
 import { ApolloDriver, ApolloDriverConfig } from "@nestjs/graphql";
 import { MissionModule } from "../../src/mission/mission.module";
-import { MissionResolver } from "../../src/mission/resolver";
+import { RoomModule } from "../../src/room/room.module";
 
 @Module({
   imports: [
@@ -12,7 +12,7 @@ import { MissionResolver } from "../../src/mission/resolver";
       autoSchemaFile: true,
     }),
     MissionModule,
+    RoomModule,
   ],
-  providers: [MissionResolver],
 })
 export class AppModule {}
