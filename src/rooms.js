@@ -163,6 +163,8 @@ meeting: room.meeting
       desc: missionInfo[m.missionId] ? missionInfo[m.missionId].desc : "",
       status: m.status,
     })),
+    activeSabotage: room.activeSabotage,
+    meetingTimeLeft: room.meeting?.endsAt ? Math.max(0, room.meeting.endsAt - Date.now()) : 0,
   };
 }
 

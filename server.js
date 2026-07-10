@@ -420,8 +420,14 @@ io.on("connection", (socket) => {
         // Individual sabotage resolved - heal player if dead
         const target = room.players.get(sabotage.targetId);
         if (target) target.alive = true;
+        // Notify target player
+        if (target && target.socketId) {
+          io.to(target.socketId).emit("room:state", playerView(room, target));
+        }
       }
       emitLobby(room);
+      emitRoomState(room);
+      recomputeWin(room);
     }
   });
 
