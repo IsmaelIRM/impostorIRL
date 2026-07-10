@@ -11,6 +11,7 @@ interface LobbyScreenProps {
 
 export function LobbyScreen({ socket, code, room, isAdmin, adminToken }: LobbyScreenProps) {
   const [localRoom, setLocalRoom] = useState(room);
+  const [templates, setTemplates] = useState<any[]>([]);
 
   useEffect(() => {
     socket.on("lobby:update", setLocalRoom);
@@ -20,6 +21,13 @@ export function LobbyScreen({ socket, code, room, isAdmin, adminToken }: LobbySc
   useEffect(() => {
     setLocalRoom(room);
   }, [room]);
+
+  useEffect(() => {
+    fetch("/api/templates")
+      .then(r => r.json())
+      .then(d => setTemplates(d.templates || []))
+      .catch(() => {});
+  }, []);
 
   if (!localRoom) return <div className="loading">Cargando...</div>;
 
@@ -54,7 +62,7 @@ export function LobbyScreen({ socket, code, room, isAdmin, adminToken }: LobbySc
       </div>
 
       {isAdmin && localRoom.code && adminToken && (
-        <AdminPanel code={localRoom.code} adminToken={adminToken} socket={socket} missions={localRoom.missions || []} />
+        <AdminPanel code={localRoom.code} adminToken={adminToken} socket={socket} missions={localRoom.missions || []} templates={templates} />
       )}
     </div>
   );

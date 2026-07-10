@@ -10,21 +10,8 @@ interface AdminPanelProps {
 
 export function AdminPanel({ code, adminToken, socket, missions: initialMissions = [], templates: initialTemplates = [] }: AdminPanelProps) {
   const [activeTab, setActiveTab] = useState<"templates" | "missions" | "sabotages" | "timers">("templates");
-  const [missions, setMissions] = useState<any[]>(initialMissions);
-  const [templates, setTemplates] = useState<any[]>(initialTemplates);
-
-  useEffect(() => {
-    setMissions(initialMissions);
-  }, [initialMissions]);
-
-  useEffect(() => {
-    setTemplates(initialTemplates);
-    // Also fetch available templates (no auth needed)
-    fetch("/api/templates")
-      .then(r => r.json())
-      .then(d => setTemplates(d.templates || []))
-      .catch(() => {});
-  }, [initialTemplates]);
+  const missions = initialMissions;
+  const templates = initialTemplates;
 
   const startGame = () => {
     socket?.emit("admin:start", { code, adminToken });
