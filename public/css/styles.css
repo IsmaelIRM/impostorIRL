@@ -522,6 +522,30 @@ label {
   display: flex;
   gap: 8px;
 }
+.admin-panel .tab-content h3 {
+  margin-top: 0;
+}
+.admin-panel .tab-content label {
+  display: block;
+  margin: 8px 0;
+}
+.admin-panel .tab-content input,
+.admin-panel .tab-content select {
+  width: 100%;
+  padding: 8px;
+  margin-top: 4px;
+  background: var(--bg2);
+  border: 1px solid var(--line);
+  border-radius: 6px;
+  color: var(--text);
+}
+.admin-panel .tab-content button {
+  margin-top: 8px;
+}
+.admin-panel .mission-item {
+  padding: 8px 0;
+  border-bottom: 1px solid var(--line);
+}
 .kick-btn {
   width: auto;
   padding: 4px 10px;
