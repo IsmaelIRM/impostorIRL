@@ -94,13 +94,34 @@ app.post("/api/modules", moduleUpload.single("file"), (req, res) => {
   }
 });
 
-// List missions (admin)
+// List missions (admin) - return room's missions for now
 app.get("/api/missions", (req, res) => {
   const room = getRoom(req.query.code);
   if (!room || room.adminToken !== req.query.adminToken) {
     return res.status(403).json({ error: "No autorizado." });
   }
-  res.json({ missions: missionLoader.list() });
+  // Return room's current missions
+  res.json({ missions: room.missions.map(m => ({ id: m.id, name: m.name, zone: m.zone })) });
+});
+
+// List templates
+app.get("/api/templates", (req, res) => {
+  const room = getRoom(req.query.code);
+  if (!room || room.adminToken !== req.query.adminToken) {
+    return res.status(403).json({ error: "No autorizado." });
+  }
+  try {
+    const files = require("fs").readdirSync(path.join(__dirname, "templates"));
+    const templates = files
+      .filter(f => f.endsWith(".json"))
+      .map(f => {
+        const t = require(path.join(__dirname, "templates", f));
+        return { id: t.id, name: t.name, numImpostors: t.numImpostors };
+      });
+    res.json({ templates });
+  } catch (e) {
+    res.json({ templates: [] });
+  }
 });
 
 // ---- Helpers ----
