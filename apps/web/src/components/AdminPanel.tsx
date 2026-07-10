@@ -13,18 +13,20 @@ export function AdminPanel({ code, adminToken, socket }: AdminPanelProps) {
   const [moduleFile, setModuleFile] = useState<File | null>(null);
 
   useEffect(() => {
-    fetchMissions();
-    fetchTemplates();
-  }, []);
+    if (code && adminToken) {
+      fetchMissions();
+      fetchTemplates();
+    }
+  }, [code, adminToken]);
+
+  if (!code || !adminToken) return null;
 
   const fetchMissions = async () => {
+    if (!code || !adminToken) return;
     try {
       const res = await fetch(`/api/missions?code=${code}&adminToken=${adminToken}`);
+      if (!res.ok) return;
       const data = await res.json();
-      if (!res.ok) {
-        console.error("Failed to fetch missions:", data.error);
-        return;
-      }
       setMissions(data.missions || []);
     } catch (e) {
       console.error("Fetch missions error:", e);
@@ -32,13 +34,11 @@ export function AdminPanel({ code, adminToken, socket }: AdminPanelProps) {
   };
 
   const fetchTemplates = async () => {
+    if (!code || !adminToken) return;
     try {
       const res = await fetch(`/api/templates?code=${code}&adminToken=${adminToken}`);
+      if (!res.ok) return;
       const data = await res.json();
-      if (!res.ok) {
-        console.error("Failed to fetch templates:", data.error);
-        return;
-      }
       setTemplates(data.templates || []);
     } catch (e) {
       console.error("Fetch templates error:", e);
