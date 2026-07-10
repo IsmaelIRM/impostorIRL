@@ -1,24 +1,24 @@
 import { Resolver, Query, Mutation, Args, Subscription } from "@nestjs/graphql";
 import { RoomService } from "./room.service";
-import { Room, Template, Player, RoomStatus } from "./models";
+import { Room, Template, Player } from "./models";
 import { PubSub } from "graphql-subscriptions";
 
 const pubSub = new PubSub();
 
-@Resolver(() => Room)
+@Resolver()
 export class RoomResolver {
   constructor(private roomService: RoomService) {}
 
-  @Query(() => Room, { nullable: true })
-  room(@Args("code") code: string): Room | undefined {
+  @Query(() => String, { nullable: true })
+  room(@Args("code") code: string): string | null {
     const room = this.roomService.getRoom(code);
-    if (!room) return undefined;
-    return this.toRoomDto(room);
+    if (!room) return null;
+    return JSON.stringify(this.toRoomDto(room));
   }
 
-  @Query(() => [Template])
-  templates(): Template[] {
-    return [
+  @Query(() => String)
+  templates(): string {
+    const templates = [
       {
         id: "default",
         name: "Default Game",
@@ -33,59 +33,21 @@ export class RoomResolver {
         missions: [{ missionId: "draw", weight: 1 }],
       },
     ];
+    return JSON.stringify(templates);
   }
 
-  @Mutation(() => Room)
-  createRoom(@Args("name") name: string): Room {
+  @Mutation(() => String)
+  createRoom(@Args("name") name: string): string {
     const room = this.roomService.createRoom(name);
-    return this.toRoomDto(room);
+    return JSON.stringify(this.toRoomDto(room));
   }
 
-  @Mutation(() => Room)
-  joinRoom(@Args("code") code: string, @Args("name") name: string): Room {
-    const room = this.roomService.getRoom(code);
-    if (!room) throw new Error("Room not found");
-    this.roomService.addPlayer(room, name, false);
-    return this.toRoomDto(room);
-  }
-
-  @Mutation(() => Room)
-  adminStart(@Args("code") code: string, @Args("adminToken") adminToken: string): Room {
-    const room = this.roomService.getRoom(code);
-    if (!room || room.adminToken !== adminToken) throw new Error("Unauthorized");
-    if (room.status !== "LOBBY") throw new Error("Game already started");
-    this.roomService.assignRoles(room);
-    room.status = "RUNNING";
-    room.startedAt = Date.now();
-    pubSub.publish(`roomUpdated_${code}`, { roomUpdated: this.toRoomDto(room) });
-    return this.toRoomDto(room);
-  }
-
-  @Subscription(() => Room, { name: "roomUpdated" })
-  roomUpdated(@Args("code") code: string) {
-    return pubSub.asyncIterator(`roomUpdated_${code}`);
-  }
-
-  private toRoomDto(room: any): Room {
+  private toRoomDto(room: any): any {
     return {
       code: room.code,
       status: room.status,
       missions: room.missions || [],
-      players: Array.from(room.players?.values() || []).map((p: any) => this.toPlayerDto(p)),
-    } as Room;
-  }
-
-  private toPlayerDto(player: any): Player {
-    return {
-      id: player.id,
-      name: player.name,
-      isAdmin: player.isAdmin,
-      sessionToken: player.sessionToken,
-      connected: player.connected,
-      alive: player.alive,
-      role: player.role,
-      cardId: player.cardId,
-      missions: player.missions || [],
-    } as Player;
+      players: Array.from(room.players?.values() || []),
+    };
   }
 }

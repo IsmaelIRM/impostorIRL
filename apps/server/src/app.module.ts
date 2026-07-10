@@ -1,6 +1,6 @@
 import { Module } from "@nestjs/common";
 import { GraphQLModule } from "@nestjs/graphql";
-import { ApolloDriver, ApolloDriverConfig } from "@nestjs/graphql";
+import { ApolloDriver, ApolloDriverConfig } from "@nestjs/apollo";
 import { MissionModule } from "../../../src/mission/mission.module";
 import { RoomModule } from "../../../src/room/room.module";
 import { GatewayModule } from "../../../src/gateway/gateway.module";

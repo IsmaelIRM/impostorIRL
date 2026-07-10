@@ -1,8 +1,8 @@
-import { Injectable, Logger } from "@nestjs/common";
+import { Injectable, Logger, OnModuleInit, OnModuleDestroy } from "@nestjs/common";
 import { RoomService } from "../room/room.service";
 
 @Injectable()
-export class TimerService {
+export class TimerService implements OnModuleInit, OnModuleDestroy {
   private readonly logger = new Logger(TimerService.name);
   private interval: any;
 

@@ -1,13 +1,6 @@
-import {
-  WebSocketGateway,
-  SubscribeMessage,
-  MessageBody,
-  ConnectedSocket,
-  WebSocketServer,
-} from "@nestjs/websockets";
+import { WebSocketGateway, SubscribeMessage, MessageBody, ConnectedSocket, WebSocketServer } from "@nestjs/websockets";
 import { Server, Socket } from "socket.io";
 import { RoomService } from "../room/room.service";
-import { Room } from "../room/models";
 
 @WebSocketGateway({ cors: { origin: "*" } })
 export class GameGateway {
@@ -23,7 +16,9 @@ export class GameGateway {
   ) {
     const room = this.roomService.getRoom(data.code);
     if (!room) return;
-    const mission = this.roomService.toggleTask(room, data.missionId, this.findPlayerId(room, data.sessionToken));
+    const playerId = this.findPlayerId(room, data.sessionToken);
+    if (!playerId) return;
+    const mission = this.roomService.toggleTask(room, data.missionId, playerId);
     if (mission) {
       const win = this.roomService.checkWin(room);
       if (win) {
@@ -49,15 +44,15 @@ export class GameGateway {
     this.server.to(data.code).emit("player:killed", { victimId: victim.id, victimName: victim.name });
   }
 
-  private findPlayer(room: Room, sessionToken: string) {
-    return Array.from(room.players.values()).find((p) => p.sessionToken === sessionToken);
+  private findPlayer(room: any, sessionToken: string) {
+    return Array.from(room.players.values()).find((p: any) => p.sessionToken === sessionToken);
   }
 
-  private findPlayerId(room: Room, sessionToken: string) {
-    return Array.from(room.players.values()).find((p) => p.sessionToken === sessionToken)?.id;
+  private findPlayerId(room: any, sessionToken: string) {
+    return Array.from(room.players.values()).find((p: any) => p.sessionToken === sessionToken)?.id;
   }
 
-  private toRoomView(room: Room) {
+  private toRoomView(room: any) {
     return {
       code: room.code,
       status: room.status,
