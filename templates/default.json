@@ -1,0 +1,11 @@
+{
+  "id": "default",
+  "name": "Default Game",
+  "numImpostors": 1,
+  "meetingSec": 60,
+  "initialKillCooldownSec": 30,
+  "killCooldownSec": 45,
+  "timeLimitSec": 600,
+  "sabotageCooldownSec": 120,
+  "missionPointsTarget": 10
+}

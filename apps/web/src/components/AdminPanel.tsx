@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 
 interface AdminPanelProps {
   code: string;
@@ -9,12 +9,24 @@ interface AdminPanelProps {
 export function AdminPanel({ code, adminToken, socket }: AdminPanelProps) {
   const [activeTab, setActiveTab] = useState<"templates" | "missions" | "sabotages" | "timers">("templates");
   const [missions, setMissions] = useState<any[]>([]);
+  const [templates, setTemplates] = useState<any[]>([]);
   const [moduleFile, setModuleFile] = useState<File | null>(null);
+
+  useEffect(() => {
+    fetchMissions();
+    fetchTemplates();
+  }, []);
 
   const fetchMissions = async () => {
     const res = await fetch(`/api/missions?code=${code}&adminToken=${adminToken}`);
     const data = await res.json();
     setMissions(data.missions || []);
+  };
+
+  const fetchTemplates = async () => {
+    const res = await fetch(`/api/templates?code=${code}&adminToken=${adminToken}`);
+    const data = await res.json();
+    setTemplates(data.templates || []);
   };
 
   const uploadModule = async () => {
@@ -41,7 +53,18 @@ export function AdminPanel({ code, adminToken, socket }: AdminPanelProps) {
   const renderTabContent = () => {
     switch (activeTab) {
       case "templates":
-        return <div>Templates tab - configure game presets</div>;
+        return (
+          <div>
+            <h3>Plantillas</h3>
+            <select>
+              <option value="">Selecciona plantilla...</option>
+              {templates.map((t) => (
+                <option key={t.id} value={t.id}>{t.name}</option>
+              ))}
+            </select>
+            <button onClick={() => console.log("Load template")}>Load</button>
+          </div>
+        );
       case "missions":
         return (
           <div>

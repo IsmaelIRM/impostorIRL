@@ -79,8 +79,10 @@ app.post("/api/modules", moduleUpload.single("file"), (req, res) => {
     if (!modEntry) return res.status(400).json({ error: "No index.js found in ZIP" });
     
     const modContent = modEntry.getData().toString("utf8");
-    const mod = eval("(" + modContent + ")");
-    
+    // Strip module.exports = and eval the object
+    const stripped = modContent.replace(/module\.exports\s*=\s*/, "").replace(/;\s*$/, "");
+    const mod = eval("(function() { return " + stripped + "; })()");
+
     if (!mod.id || !mod.name) {
       return res.status(400).json({ error: "Module missing id or name" });
     }
