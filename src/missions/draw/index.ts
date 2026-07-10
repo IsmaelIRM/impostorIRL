@@ -17,21 +17,26 @@ export class DrawMission {
       type: "object",
       properties: {
         difficulty: { type: "string", enum: ["easy", "medium", "hard"] },
+        timeSeconds: { type: "number", minimum: 30, maximum: 600 },
       },
     },
-    default: { difficulty: "medium" },
+    default: { difficulty: "medium", timeSeconds: 300 },
   };
 
   assign(player: Player, mission: MissionType): AssignedMission {
     return {
       playerId: player.id,
       targetId: null,
-      deadline: Date.now() + 300000,
-      uuid: crypto.randomUUID(),
+      deadline: Date.now() + (mission.config?.timeSeconds || 300) * 1000,
+      uuid: (globalThis as any).crypto?.randomUUID?.() || Math.random().toString(36).slice(2),
     };
   }
 
   renderPopup(player: Player, assigned: AssignedMission): string {
-    return `<div>Completa para ${player.name}: <canvas id="draw-${assigned.uuid}"></canvas></div>`;
+    return `<div class="mission-popup">
+      <h3>Misión: Dibujar</h3>
+      <p>Jugador: ${player.name}</p>
+      <canvas id="draw-${assigned.uuid}" width="200" height="200" style="border:1px solid #ccc;"></canvas>
+    </div>`;
   }
 }
