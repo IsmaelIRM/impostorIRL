@@ -58,6 +58,49 @@ app.post("/api/upload", upload.single("map"), (req, res) => {
   res.json({ mapImageUrl: url });
 });
 
+// Mission ZIP upload (admin)
+const moduleUploadDir = path.join(__dirname, "public", "uploads", "modules");
+require("fs").mkdirSync(moduleUploadDir, { recursive: true });
+const moduleUpload = multer({
+  dest: moduleUploadDir,
+  limits: { fileSize: 5 * 1024 * 1024 },
+  fileFilter: (req, file, cb) => cb(null, file.mimetype === "application/zip" || file.originalname?.endsWith(".zip")),
+});
+const AdmZip = require("adm-zip");
+const { MissionLoader } = require("./src/mission/loader");
+const missionLoader = new MissionLoader();
+
+app.post("/api/modules", moduleUpload.single("file"), (req, res) => {
+  if (!req.file) return res.status(400).json({ error: "No ZIP uploaded" });
+  try {
+    const zip = new AdmZip(req.file.path);
+    const zipEntries = zip.getEntries();
+    const modEntry = zipEntries.find(e => e.entryName.endsWith("index.js"));
+    if (!modEntry) return res.status(400).json({ error: "No index.js found in ZIP" });
+    
+    const modContent = modEntry.getData().toString("utf8");
+    const mod = eval("(" + modContent + ")");
+    
+    if (!mod.id || !mod.name) {
+      return res.status(400).json({ error: "Module missing id or name" });
+    }
+    
+    missionLoader.register(mod);
+    res.json({ success: true, metadata: missionLoader.list().find(m => m.id === mod.id) });
+  } catch (e) {
+    res.status(400).json({ error: "Invalid module: " + e.message });
+  }
+});
+
+// List missions (admin)
+app.get("/api/missions", (req, res) => {
+  const room = getRoom(req.query.code);
+  if (!room || room.adminToken !== req.query.adminToken) {
+    return res.status(403).json({ error: "No autorizado." });
+  }
+  res.json({ missions: missionLoader.list() });
+});
+
 // ---- Helpers ----
 
 function emitLobby(room) {
@@ -480,6 +523,10 @@ io.on("connection", (socket) => {
     io.to(room.code).emit("player:kicked", { playerId: payload.playerId });
     emitLobby(room);
   });
+});
+
+missionLoader.loadAll().then(() => {
+  console.log("Loaded missions:", missionLoader.list().map(m => m.id).join(", "));
 });
 
 const PORT = process.env.PORT || 3000;

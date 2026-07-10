@@ -498,6 +498,30 @@ label {
 .admin-panel {
   border: 2px dashed var(--warn);
 }
+.admin-panel .tabs {
+  display: flex;
+  gap: 4px;
+  margin-bottom: 12px;
+}
+.admin-panel .tabs button {
+  flex: 1;
+  padding: 8px;
+  background: var(--card);
+  border: none;
+  color: var(--muted);
+  cursor: pointer;
+}
+.admin-panel .tabs button.active {
+  background: var(--accent);
+  color: #000;
+}
+.admin-panel .tab-content {
+  margin-bottom: 12px;
+}
+.admin-panel .admin-actions {
+  display: flex;
+  gap: 8px;
+}
 .kick-btn {
   width: auto;
   padding: 4px 10px;

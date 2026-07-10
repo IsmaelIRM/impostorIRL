@@ -6,7 +6,7 @@ import { PlayerScreen } from "./screens/Player";
 import { MeetingScreen } from "./screens/Meeting";
 import { ResultsScreen } from "./screens/Results";
 
-const socket = io("http://localhost:3002");
+const socket = io("http://localhost:3000");
 
 interface Context {
   code: string | null;

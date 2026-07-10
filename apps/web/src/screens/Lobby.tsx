@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from "react";
+import { AdminPanel } from "../components/AdminPanel";
 
 interface LobbyScreenProps {
   socket: any;
@@ -53,13 +54,7 @@ export function LobbyScreen({ socket, code, room, isAdmin, adminToken }: LobbySc
       </div>
 
       {isAdmin && (
-        <div className="card admin-panel">
-          <h3>⚙️ Panel de anfitrión</h3>
-          <p className="tiny">Configura la partida antes de iniciar</p>
-          <button className="good" onClick={() => socket.emit("admin:start", { code, adminToken })}>
-            ▶ Comenzar partida
-          </button>
-        </div>
+        <AdminPanel code={code} adminToken={adminToken || ""} socket={socket} />
       )}
     </div>
   );

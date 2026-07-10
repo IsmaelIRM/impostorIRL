@@ -19,5 +19,8 @@
     "concurrently": "^8.2.0",
     "tsx": "^4.23.0",
     "typescript": "^5.5.0"
+  },
+  "dependencies": {
+    "adm-zip": "^0.5.18"
   }
 }

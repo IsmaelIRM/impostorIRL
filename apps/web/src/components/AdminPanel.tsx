@@ -1,27 +1,42 @@
 import React, { useState } from "react";
-import { useQuery, gql } from "@apollo/client";
-
-const MISSIONS_QUERY = gql`
-  query GetMissions {
-    missions {
-      id
-      name
-      isInteractive
-      scope
-      endsGame
-      weight
-    }
-  }
-`;
 
 interface AdminPanelProps {
   code: string;
   adminToken: string;
+  socket?: any;
 }
 
-export function AdminPanel({ code, adminToken }: AdminPanelProps) {
+export function AdminPanel({ code, adminToken, socket }: AdminPanelProps) {
   const [activeTab, setActiveTab] = useState<"templates" | "missions" | "sabotages" | "timers">("templates");
-  const { data, loading } = useQuery(MISSIONS_QUERY);
+  const [missions, setMissions] = useState<any[]>([]);
+  const [moduleFile, setModuleFile] = useState<File | null>(null);
+
+  const fetchMissions = async () => {
+    const res = await fetch(`/api/missions?code=${code}&adminToken=${adminToken}`);
+    const data = await res.json();
+    setMissions(data.missions || []);
+  };
+
+  const uploadModule = async () => {
+    if (!moduleFile) return;
+    const form = new FormData();
+    form.append("file", moduleFile);
+    const res = await fetch(`/api/modules?code=${code}&adminToken=${adminToken}`, {
+      method: "POST",
+      body: form,
+    });
+    const data = await res.json();
+    if (data.success) fetchMissions();
+    else alert(data.error);
+  };
+
+  const startGame = () => {
+    socket?.emit("admin:start", { code, adminToken });
+  };
+
+  const resetGame = () => {
+    socket?.emit("admin:reset", { code, adminToken });
+  };
 
   const renderTabContent = () => {
     switch (activeTab) {
@@ -31,12 +46,16 @@ export function AdminPanel({ code, adminToken }: AdminPanelProps) {
         return (
           <div>
             <h3>Misiones</h3>
-            {loading ? "Loading..." : data?.missions?.map((m: any) => (
+            <button onClick={fetchMissions}>Refresh</button>
+            {missions.map((m) => (
               <div key={m.id} className="mission-item">
                 <span>{m.name} ({m.scope})</span>
-                <input type="number" placeholder="Weight" defaultValue={m.weight} />
               </div>
             ))}
+            <div style={{ marginTop: "1rem" }}>
+              <input type="file" accept=".zip" onChange={(e) => setModuleFile(e.target.files?.[0] || null)} />
+              <button onClick={uploadModule}>Upload Module</button>
+            </div>
           </div>
         );
       case "sabotages":
@@ -54,7 +73,7 @@ export function AdminPanel({ code, adminToken }: AdminPanelProps) {
   };
 
   return (
-    <div className="admin-panel">
+    <div className="admin-panel" style={{ marginTop: "1rem" }}>
       <div className="tabs">
         <button className={activeTab === "templates" ? "active" : ""} onClick={() => setActiveTab("templates")}>Plantillas</button>
         <button className={activeTab === "missions" ? "active" : ""} onClick={() => setActiveTab("missions")}>Misiones</button>
@@ -63,8 +82,8 @@ export function AdminPanel({ code, adminToken }: AdminPanelProps) {
       </div>
       <div className="tab-content">{renderTabContent()}</div>
       <div className="admin-actions">
-        <button onClick={() => console.log("Start game")}>Iniciar Partida</button>
-        <button onClick={() => console.log("Reset game")}>Reiniciar</button>
+        <button onClick={startGame}>Iniciar Partida</button>
+        <button onClick={resetGame}>Reiniciar</button>
       </div>
     </div>
   );
