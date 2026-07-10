@@ -6,6 +6,18 @@ Open `http://localhost:5173` in your browser after running `npm run dev:web`.
 
 ## Recent Changes
 
+### Phase 0-5: React + NestJS Migration (2026-07-10)
+
+- Initialized pnpm monorepo with workspaces (`apps/server`, `apps/web`)
+- Added `@Mission()` decorator with metadata support (scope, weight, isInteractive)
+- Created `MissionLoader` service with fast-glob scanning
+- Implemented GraphQL schema with Mission, Room, Player, Template types
+- Added WebSocket gateway (`GameGateway`) for real-time updates
+- Added Timer service for time limit checks
+- Created AdminPanel with tabs (Templates, Missions, Sabotages, Timers)
+- Added SchemaForm component for JSON schema auto-generation
+- Implemented mission modules: draw, brick, basket, nerf, photo, pool, sabotage-nfc, sabotage-core
+
 ### QR Link Button & Alarm on Meeting Request
 
 #### Files Modified:
