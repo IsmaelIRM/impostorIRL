@@ -54,6 +54,7 @@ export class Room {
   @Field() code: string;
   @Field(() => RoomStatus) status: RoomStatus;
   @Field(() => String, { nullable: true }) templateId?: string;
+  @Field(() => String, { nullable: true }) adminToken?: string;
   @Field(() => [Mission]) missions: Mission[];
   @Field(() => [Player]) players: Player[];
 }
@@ -81,4 +82,10 @@ export class MissionTemplateInput {
   @Field({ nullable: true }) weight?: number;
   @Field(() => String, { nullable: true }) config?: string;
   @Field(() => String, { nullable: true }) metadata?: string;
+}
+
+@ObjectType()
+export class GameOver {
+  @Field() winner: string;
+  @Field() reason: string;
 }

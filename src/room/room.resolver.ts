@@ -1,6 +1,9 @@
 import { Resolver, Query, Mutation, Args, Subscription } from "@nestjs/graphql";
 import { RoomService } from "./room.service";
-import { Room, Template, Player } from "./models";
+import { Room, Template, Player, RoomStatus } from "./models";
+import { PubSub } from "graphql-subscriptions";
+
+const pubSub = new PubSub();
 
 @Resolver(() => Room)
 export class RoomResolver {
@@ -15,7 +18,6 @@ export class RoomResolver {
 
   @Query(() => [Template])
   templates(): Template[] {
-    // Load from src/templates/*.json
     return [
       {
         id: "default",
@@ -37,6 +39,31 @@ export class RoomResolver {
   createRoom(@Args("name") name: string): Room {
     const room = this.roomService.createRoom(name);
     return this.toRoomDto(room);
+  }
+
+  @Mutation(() => Room)
+  joinRoom(@Args("code") code: string, @Args("name") name: string): Room {
+    const room = this.roomService.getRoom(code);
+    if (!room) throw new Error("Room not found");
+    this.roomService.addPlayer(room, name, false);
+    return this.toRoomDto(room);
+  }
+
+  @Mutation(() => Room)
+  adminStart(@Args("code") code: string, @Args("adminToken") adminToken: string): Room {
+    const room = this.roomService.getRoom(code);
+    if (!room || room.adminToken !== adminToken) throw new Error("Unauthorized");
+    if (room.status !== "LOBBY") throw new Error("Game already started");
+    this.roomService.assignRoles(room);
+    room.status = "RUNNING";
+    room.startedAt = Date.now();
+    pubSub.publish(`roomUpdated_${code}`, { roomUpdated: this.toRoomDto(room) });
+    return this.toRoomDto(room);
+  }
+
+  @Subscription(() => Room, { name: "roomUpdated" })
+  roomUpdated(@Args("code") code: string) {
+    return pubSub.asyncIterator(`roomUpdated_${code}`);
   }
 
   private toRoomDto(room: any): Room {
