@@ -2,6 +2,7 @@ import React, { useEffect, useState } from "react";
 import { io } from "socket.io-client";
 import { LobbyScreen } from "./screens/Lobby";
 import { PlayerScreen } from "./screens/Player";
+import { LandingScreen } from "./screens/Landing";
 
 const socket = io({ path: "/socket.io" });
 
@@ -12,14 +13,9 @@ export default function App() {
   const [playerState, setPlayerState] = useState<any>(null);
 
   useEffect(() => {
-    const path = window.location.pathname;
     const stored = localStorage.getItem("au_session");
     
-    if (path.startsWith("/r/")) {
-      const urlCode = path.split("/")[2];
-      if (urlCode) setCode(urlCode.toUpperCase());
-      setView("landing");
-    } else if (stored) {
+    if (stored) {
       const session = JSON.parse(stored);
       setCode(session.code);
       setSessionToken(session.sessionToken);
@@ -71,49 +67,13 @@ export default function App() {
   };
 
   if (view === "landing") {
-    const isJoin = code && sessionToken !== "";
-    const [name, setName] = useState("");
-
-    return (
-      <div style={{ padding: "20px" }}>
-        <h1>Among Us Real Life</h1>
-        {isJoin ? (
-          <div className="card">
-            <h3>Unirse a sala {code}</h3>
-            <input
-              placeholder="Tu nombre"
-              value={name}
-              onChange={(e) => setName(e.target.value)}
-            />
-            <button onClick={() => joinRoom(name, code)} disabled={!name.trim()}>
-              Unirse
-            </button>
-          </div>
-        ) : (
-          <div className="card">
-            <h3>Crear sala</h3>
-            <input
-              placeholder="Tu nombre"
-              value={name}
-              onChange={(e) => setName(e.target.value)}
-            />
-            <button onClick={() => createRoom(name)} disabled={!name.trim()}>
-              Crear
-            </button>
-            <button className="ghost" onClick={() => document.getElementById("join-modal")?.classList.remove("hidden")}>
-              Unirse a sala existente
-            </button>
-          </div>
-        )}
-        <div id="join-modal" className="overlay hidden">
-          <div className="card">
-            <h3>Código de sala</h3>
-            <input placeholder="ABC123" id="join-code-input" onChange={(e) => setCode(e.target.value.toUpperCase())} />
-            <button onClick={() => {}} id="join-confirm-btn">Listo</button>
-          </div>
-        </div>
-      </div>
-    );
+    return <LandingScreen 
+      isJoin={!!code} 
+      code={code}
+      onJoin={(name) => joinRoom(name, code)}
+      onCreate={createRoom}
+      onShowJoin={() => setCode("")}
+    />;
   }
 
   if (view === "lobby") {

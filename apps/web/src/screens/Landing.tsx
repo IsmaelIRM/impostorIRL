@@ -1,36 +1,52 @@
 import React, { useState } from "react";
-import { gql, useMutation } from "@apollo/client";
 
-const CREATE_ROOM = gql`
-  mutation CreateRoom($name: String!) {
-    createRoom(name: $name) {
-      code
-    }
-  }
-`;
+interface LandingScreenProps {
+  isJoin: boolean;
+  code: string;
+  onJoin: (name: string) => void;
+  onCreate: (name: string) => void;
+  onShowJoin: () => void;
+}
 
-export function Landing() {
+export function LandingScreen({ isJoin, code, onJoin, onCreate, onShowJoin }: LandingScreenProps) {
   const [name, setName] = useState("");
-  const [createRoom, { loading }] = useMutation(CREATE_ROOM);
 
-  const handleCreateRoom = async () => {
-    if (!name.trim()) return;
-    const { data } = await createRoom({ variables: { name } });
-    window.location.href = `/lobby/${data.createRoom.code}`;
-  };
+  if (isJoin) {
+    return (
+      <div style={{ padding: "20px" }}>
+        <h1>Among Us Real Life</h1>
+        <div className="card">
+          <h3>Unirse a sala {code}</h3>
+          <input
+            placeholder="Tu nombre"
+            value={name}
+            onChange={(e) => setName(e.target.value)}
+          />
+          <button onClick={() => onJoin(name)} disabled={!name.trim()}>
+            Unirse
+          </button>
+        </div>
+      </div>
+    );
+  }
 
   return (
-    <div className="landing">
-      <h2>Crear Sala</h2>
-      <input
-        type="text"
-        value={name}
-        onChange={(e) => setName(e.target.value)}
-        placeholder="Nombre del anfitrión"
-      />
-      <button onClick={handleCreateRoom} disabled={loading}>
-        Crear
-      </button>
+    <div style={{ padding: "20px" }}>
+      <h1>Among Us Real Life</h1>
+      <div className="card">
+        <h3>Crear sala</h3>
+        <input
+          placeholder="Tu nombre"
+          value={name}
+          onChange={(e) => setName(e.target.value)}
+        />
+        <button onClick={() => onCreate(name)} disabled={!name.trim()}>
+          Crear
+        </button>
+        <button className="ghost" onClick={onShowJoin}>
+          Unirse a sala existente
+        </button>
+      </div>
     </div>
   );
 }
