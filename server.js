@@ -364,7 +364,68 @@ io.on("connection", (socket) => {
     recomputeWin(room);
   });
 
-  // A player reports a body -> the meeting starts right away (everyone goes
+  // Impostor activates sabotage
+  socket.on("impostor:sabotage", (payload) => {
+    const room = getRoom(payload && payload.code);
+    if (!room || room.status !== "RUNNING") return;
+    const impostor = Array.from(room.players.values()).find(
+      (p) => p.sessionToken === payload.sessionToken && p.role === "IMPOSTOR"
+    );
+    if (!impostor || !impostor.alive) return;
+    
+    // Check cooldown
+    const now = Date.now();
+    if (room.sabotageCooldownUntil && now < room.sabotageCooldownUntil) return;
+    
+    const mission = missionLoader.get(payload.missionId);
+    if (!mission || !mission.scope) return;
+    
+    // Set cooldown
+    room.sabotageCooldownUntil = now + (room.sabotageCooldownSec || 120) * 1000;
+    
+    const sabotage = {
+      id: uuid(),
+      missionId: payload.missionId,
+      activatedAt: now,
+      endsAt: mission.endsGame ? now + 300000 : null, // 5 min timeout for ending sabotages
+      progress: {},
+      targetId: payload.targetId || null, // for individual sabotages
+    };
+    
+    room.activeSabotage = sabotage;
+    io.to(room.code).emit("sabotage:started", { sabotage: { ...sabotage, missionName: mission.name } });
+    emitLobby(room);
+  });
+
+  // Resolve sabotage (player submits data)
+  socket.on("sabotage:resolve", (payload) => {
+    const room = getRoom(payload && payload.code);
+    if (!room || !room.activeSabotage) return;
+    
+    const sabotage = room.activeSabotage;
+    const mission = missionLoader.get(sabotage.missionId);
+    if (!mission || !mission.onProgress) return; // no custom logic
+    
+    // For individual sabotage, target must be the player
+    if (sabotage.targetId && payload.playerId !== sabotage.targetId) return;
+    
+    // Validate sabotage resolution
+    const success = mission.onProgress ? mission.onProgress(payload.data) : true;
+    
+    if (success) {
+      room.activeSabotage = null;
+      room.sabotageCooldownUntil = null;
+      io.to(room.code).emit("sabotage:resolved", { sabotageId: sabotage.id });
+      if (sabotage.targetId) {
+        // Individual sabotage resolved - heal player if dead
+        const target = room.players.get(sabotage.targetId);
+        if (target) target.alive = true;
+      }
+      emitLobby(room);
+    }
+  });
+
+  // -- Meeting/report body -- the meeting starts right away (everyone goes
   // to the meeting). The admin then starts the timed vote from inside it.
   socket.on("meeting:report", (payload) => {
     const room = getRoom(payload && payload.code);

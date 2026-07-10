@@ -34,6 +34,14 @@ function allImpostorsVotedOut(room) {
   return imps.every((p) => !p.alive);
 }
 
+// Impostor wins if sabotage times out
+function sabotageTimeout(room) {
+  if (room.activeSabotage && room.activeSabotage.endsAt && Date.now() >= room.activeSabotage.endsAt) {
+    return { team: "IMPOSTOR", reason: "sabotage" };
+  }
+  return null;
+}
+
 // Returns { team, reason } or null if the game continues.
 function checkWin(room) {
   if (room.status === "ENDED") return null;
@@ -49,6 +57,9 @@ function checkWin(room) {
   }
   if (room.timeLimitSec && room.timeLimitEndsAt && Date.now() >= room.timeLimitEndsAt) {
     return { team: "IMPOSTOR", reason: "timeout" };
+  }
+  if (room.activeSabotage) {
+    return sabotageTimeout(room);
   }
   return null;
 }

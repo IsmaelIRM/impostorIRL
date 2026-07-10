@@ -35,6 +35,9 @@ function createRoom() {
     meetingSec: 120,
     timeLimitSec: null,
     timeLimitEndsAt: null,
+    sabotageCooldownSec: 120,
+    sabotageCooldownUntil: null,
+    activeSabotage: null,
   };
   rooms.set(code, room);
   return room;
@@ -91,6 +94,7 @@ function lobbyView(room) {
     killCooldownSec: room.killCooldownSec,
     timeLimitSec: room.timeLimitSec,
     mapImageUrl: room.mapImageUrl,
+    activeSabotage: room.activeSabotage,
     missions: room.missions.map((m) => ({
       id: m.id,
       name: m.name,
