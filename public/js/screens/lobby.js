@@ -201,8 +201,11 @@ function getMissionConfigFields(mission) {
   
   // Fallback to hardcoded values
   if (type === "DRAW") {
-    return `<label style="margin-top:6px">Dibujar objeto</label>
-      <input class="m-config-draw-target" placeholder="Objeto a dibujar" value="${escapeHtml(config.drawTarget || "")}" />`;
+    const objectsStr = Array.isArray(config.drawObjects) && config.drawObjects.length > 0
+      ? config.drawObjects.join(", ")
+      : "manzana, perro, gato, casa, árbol, coche";
+    return `<label style="margin-top:6px">Objetos para dibujar (separados por coma)</label>
+      <input class="m-config-draw-objects" placeholder="Objeto 1, Objeto 2" value="${escapeHtml(objectsStr)}" />`;
   }
   
   if (type === "BRICK") {
@@ -440,8 +443,8 @@ export function mount(ctx) {
         if (missionLoader.loaded) {
           config = missionLoader.collectConfig(type, row) || {};
         } else {
-          const drawTarget = row.querySelector(".m-config-draw-target");
-          if (drawTarget) config.drawTarget = drawTarget.value.trim();
+          const drawObjects = row.querySelector(".m-config-draw-objects");
+          if (drawObjects) config.drawObjects = drawObjects.value.split(",").map(s => s.trim()).filter(Boolean);
           const pattern = row.querySelector(".m-config-pattern");
           if (pattern) config.pattern = pattern.value.split(",").map(s => s.trim()).filter(Boolean);
           const photoObjects = row.querySelector(".m-config-photo-objects");
@@ -565,8 +568,8 @@ function buildConfig() {
       config = missionLoader.collectConfig(type, row) || {};
     } else {
       // Fallback hardcoded extraction
-      const drawTarget = row.querySelector(".m-config-draw-target");
-      if (drawTarget && drawTarget.value) config.drawTarget = drawTarget.value.trim();
+      const drawObjects = row.querySelector(".m-config-draw-objects");
+      if (drawObjects && drawObjects.value) config.drawObjects = drawObjects.value.split(",").map(s => s.trim()).filter(Boolean);
       const pattern = row.querySelector(".m-config-pattern");
       if (pattern && pattern.value) config.pattern = pattern.value.split(",").map(s => s.trim()).filter(Boolean);
       const photoObjects = row.querySelector(".m-config-photo-objects");

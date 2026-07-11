@@ -150,27 +150,9 @@ export function mount(ctx) {
     });
   });
 
-  // Mount popups for each mission (completion triggers inside modals)
+// Mount popups for each mission (completion triggers inside modals)
   renderedMissions.forEach(mission => mission.mount ? mission.mount(ctx) : null);
-  
-  // Handle DRAW modal completion
-  const drawDone = document.getElementById('draw-done');
-  if (drawDone && !drawDone._handler) {
-    drawDone._handler = true;
-    drawDone.addEventListener('click', () => {
-      const drawModal = document.getElementById('draw-modal');
-      const missionId = drawModal?.dataset.missionId;
-      if (missionId) {
-        socket.emit("task:toggle", {
-          code: ctx.code,
-          sessionToken: ctx.sessionToken,
-          missionId: missionId,
-        });
-      }
-      drawModal?.classList.add('hidden');
-    });
-  }
-  
+
   // Handle PHOTO modal completion
   const photoTake = document.getElementById('photo-take');
   if (photoTake && !photoTake._handler) {

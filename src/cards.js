@@ -1,5 +1,5 @@
 const { v4: uuid } = require("uuid");
-const { generateBrickPattern, generatePhotoObject } = require("./mission-generators");
+const { generateBrickPattern, generatePhotoObject, generateDrawObject } = require("./mission-generators");
 
 function shuffle(arr) {
   const a = arr.slice();
@@ -17,7 +17,8 @@ function sample(arr, n) {
 // Registry mapping mission types to their metadata generators
 const missionGenerators = {
   BRICK: generateBrickPattern,
-  PHOTO: generatePhotoObject
+  PHOTO: generatePhotoObject,
+  DRAW: generateDrawObject
 };
 
 // Default 10 missions from the PDF template.

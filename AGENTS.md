@@ -104,3 +104,25 @@
 **public/js/missions/missions/nfctask.js** - NFC mission type for testing:
 - Shows "Leer etiqueta NFC" button in mission modal
 - "Simular (desarrollo)" button for testing without NFC hardware
+
+### Draw Mission Refactored (Predefined Object List)
+
+#### Files Modified:
+- `src/mission-generators.js` - Added `generateDrawObject()` with `DEFAULT_DRAW_OBJECTS` array (20 objects), hash-based selection
+- `src/cards.js` - Registered `DRAW: generateDrawObject` in mission generators
+- `public/js/missions/missions/draw.js` - Changed config from `drawTarget` (single) to `drawObjects` (array), uses `assignedObject` from metadata, simplified to non-interactive with just description + complete button
+- `public/js/screens/lobby.js` - Updated config field extraction to use `drawObjects` array input
+- `public/js/screens/game.js` - Removed DRAW modal canvas handling
+
+#### Changes Summary:
+
+**mission-generators.js**: Added `generateDrawObject(config, player)` that:
+- Uses hash of player.id for deterministic random selection
+- Falls back to `DEFAULT_DRAW_OBJECTS` when no config provided
+- Returns `{ assignedObject: "selected object" }` in metadata
+
+**draw.js**: Mission now:
+- Stores list of objects in `config.drawObjects`
+- Displays `metadata.assignedObject` in the modal description
+- Non-interactive (`defaultInteractive: false`) - shows description + "Completar" button
+- Admin config accepts comma-separated object list
