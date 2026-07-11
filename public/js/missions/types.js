@@ -37,6 +37,12 @@ class MissionModule {
     return {};
   }
 
+  // Static method to generate mission instance data for a player
+  // Returns object that gets stored in metadata
+  static generateMissionData(config, player) {
+    return {};
+  }
+
   // Popup content shown in the mission modal - override in subclasses
   renderPopupContent() {
     return `<button class="good" data-complete-popup="${this.id}">✓ Completar</button>`;

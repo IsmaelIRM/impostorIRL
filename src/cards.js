@@ -1,4 +1,5 @@
 const { v4: uuid } = require("uuid");
+const { generateBrickPattern, generatePhotoObject } = require("./mission-generators");
 
 function shuffle(arr) {
   const a = arr.slice();
@@ -12,6 +13,12 @@ function shuffle(arr) {
 function sample(arr, n) {
   return shuffle(arr).slice(0, n);
 }
+
+// Registry mapping mission types to their metadata generators
+const missionGenerators = {
+  BRICK: generateBrickPattern,
+  PHOTO: generatePhotoObject
+};
 
 // Default 10 missions from the PDF template.
 function defaultMissions() {
@@ -82,20 +89,12 @@ p.cardId = cardId;
          missionId: mission.id,
          status: "PENDING",
        };
-       // Assign specific object for PHOTO missions
-       if (mission.type === "PHOTO" && Array.isArray(mission.config?.photoObjects) && mission.config.photoObjects.length > 0) {
-         playerMission.metadata = { assignedObject: mission.config.photoObjects[Math.floor(Math.random() * mission.config.photoObjects.length)] };
-       }
-       // Generate random pattern for BRICK missions
-       if (mission.type === "BRICK" && Array.isArray(mission.config?.availableColors) && mission.config.availableColors.length > 0) {
-         const n = Math.max(1, Math.min(10, mission.config.blocksLength || 2));
-         const colors = [...mission.config.availableColors];
-         const pattern = [];
-         for (let j = 0; j < n && colors.length > 0; j++) {
-           const idx = Math.floor(Math.random() * colors.length);
-           pattern.push(colors.splice(idx, 1)[0]);
+       // Call mission-specific metadata generator if available
+       if (mission.config && missionGenerators[mission.type]) {
+         const metadata = missionGenerators[mission.type](mission.config, p);
+         if (Object.keys(metadata).length > 0) {
+           playerMission.metadata = metadata;
          }
-         playerMission.metadata = { pattern };
        }
        return playerMission;
      });

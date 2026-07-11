@@ -38,6 +38,14 @@ class BrickMission extends MissionModule {
     return config;
   }
 
+  // Document what instance data this mission generates
+  // Used by server-side registry in src/cards.js
+  static getMetadataSpec() {
+    return {
+      pattern: "array of colors randomly selected from availableColors"
+    };
+  }
+
   renderPopupContent() {
     const patternDisplay = this.pattern.map((color, i) => 
       `<div class="brick-piece ${color.toLowerCase()}" data-brick-index="${i}" style="
