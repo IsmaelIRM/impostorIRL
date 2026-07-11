@@ -186,16 +186,17 @@ return {
           }
         : null,
 missions: player.missions.map((m) => ({
-         id: m.missionId,
-         name: missionInfo[m.missionId] ? missionInfo[m.missionId].name : "",
-         zone: missionInfo[m.missionId] ? missionInfo[m.missionId].zone : "",
-         desc: missionInfo[m.missionId] ? missionInfo[m.missionId].desc : "",
-         type: missionInfo[m.missionId] ? missionInfo[m.missionId].type : "GENERIC",
-         interactive: missionInfo[m.missionId] ? missionInfo[m.missionId].interactive : false,
-         config: missionInfo[m.missionId] ? missionInfo[m.missionId].config : {},
-         assignedObject: m.assignedObject || null,
-         status: m.status,
-       })),
+          id: m.missionId,
+          name: missionInfo[m.missionId] ? missionInfo[m.missionId].name : "",
+          zone: missionInfo[m.missionId] ? missionInfo[m.missionId].zone : "",
+          desc: missionInfo[m.missionId] ? missionInfo[m.missionId].desc : "",
+          type: missionInfo[m.missionId] ? missionInfo[m.missionId].type : "GENERIC",
+          interactive: missionInfo[m.missionId] ? missionInfo[m.missionId].interactive : false,
+          config: missionInfo[m.missionId] ? missionInfo[m.missionId].config : {},
+          assignedObject: m.assignedObject || null,
+          pattern: m.pattern || null,
+          status: m.status,
+        })),
   };
 }
 

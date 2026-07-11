@@ -216,50 +216,38 @@ io.on("connection", (socket) => {
       return ack && ack({ error: "No autorizado." });
     if (room.status !== "LOBBY") return ack && ack({ error: "La partida ya empezó." });
 
-    if (Array.isArray(payload.missions)) {
-      const missions = payload.missions
-        .map((m) => {
-          const mission = {
-            id: m.id && /^[0-9a-f-]{36}$/i.test(m.id) ? m.id : uuid(),
-            name: String(m.name || "").slice(0, 60),
-            zone: String(m.zone || "").slice(0, 40),
-            desc: String(m.desc || "").slice(0, 200),
-            type: String(m.type || "GENERIC").slice(0, 20),
-            interactive: m.interactive === true,
-            config: {}
-          };
-          
-// Extract type-specific config
-           if (m.config) {
-             if (m.type === "DRAW" && m.config.drawTarget) {
-               mission.config.drawTarget = String(m.config.drawTarget).slice(0, 40);
-             }
-             if (m.type === "BRICK") {
-               if (m.config.availableColors) {
-                 mission.config.availableColors = Array.isArray(m.config.availableColors)
-                   ? m.config.availableColors.map(c => String(c).trim().toUpperCase()).slice(0, 10)
-                   : String(m.config.availableColors).split(",").map(c => c.trim().toUpperCase()).slice(0, 10);
+if (Array.isArray(payload.missions)) {
+       const missions = payload.missions
+         .map((m) => {
+           const mission = {
+             id: m.id && /^[0-9a-f-]{36}$/i.test(m.id) ? m.id : uuid(),
+             name: String(m.name || "").slice(0, 60),
+             zone: String(m.zone || "").slice(0, 40),
+             desc: String(m.desc || "").slice(0, 200),
+             type: String(m.type || "GENERIC").slice(0, 20),
+             interactive: m.interactive === true,
+             config: {}
+           };
+           
+           // Generic config passthrough with sanitization
+           if (m.config && typeof m.config === 'object') {
+             for (const [key, value] of Object.entries(m.config)) {
+               if (typeof value === 'string') {
+                 mission.config[key] = value.slice(0, 50);
+               } else if (Array.isArray(value)) {
+                 mission.config[key] = value.map(v => typeof v === 'string' ? v.slice(0, 30) : v).slice(0, 20);
+               } else if (typeof value === 'number') {
+                 mission.config[key] = value;
                }
-               if (m.config.blocksLength) {
-                 mission.config.blocksLength = Math.max(1, Math.min(10, Number(m.config.blocksLength)));
-               }
-             }
-             if (m.type === "PHOTO" && m.config.photoObjects) {
-               mission.config.photoObjects = Array.isArray(m.config.photoObjects)
-                 ? m.config.photoObjects.map(o => String(o).slice(0, 30)).slice(0, 10)
-                 : String(m.config.photoObjects).split(",").map(o => o.trim()).slice(0, 10);
-             }
-             if (m.type === "NFC_TASK" && m.config.nfcId) {
-               mission.config.nfcId = String(m.config.nfcId).slice(0, 40);
              }
            }
-          
-          return mission;
-        })
-        .filter((m) => m.name.trim())
-        .slice(0, 20);
-      if (missions.length >= 1) room.missions = missions;
-    }
+           
+           return mission;
+         })
+         .filter((m) => m.name.trim())
+         .slice(0, 20);
+       if (missions.length >= 1) room.missions = missions;
+     }
     if (typeof payload.numImpostors === "number") {
       const max = Math.min(2, Math.max(1, room.players.size - 1));
       room.numImpostors = Math.max(1, Math.min(payload.numImpostors, max));

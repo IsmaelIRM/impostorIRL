@@ -8,20 +8,8 @@ class BrickMission extends MissionModule {
 
   constructor(mission) {
     super(mission);
-    this.blocksLength = mission.config?.blocksLength || 4;
-    this.availableColors = mission.config?.availableColors || ["R", "B", "Y", "G"];
-    this.pattern = this.generatePattern();
+    this.pattern = mission.pattern || [];
     this.status = mission.status || "PENDING";
-  }
-
-  generatePattern() {
-    const colors = [...this.availableColors];
-    const pattern = [];
-    for (let i = 0; i < this.blocksLength && colors.length > 0; i++) {
-      const idx = Math.floor(Math.random() * colors.length);
-      pattern.push(colors.splice(idx, 1)[0]);
-    }
-    return pattern;
   }
 
   renderConfigContent() {
