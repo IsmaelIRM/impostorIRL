@@ -3,13 +3,25 @@ import { MissionModule, escapeHtml } from '../types.js';
 class BrickMission extends MissionModule {
   static type = "BRICK";
   static metadata = {
-    name: "Ladrillo", icon: "🧱", defaultInteractive: true
+    name: "Ladrillo", icon: "🧱", defaultInteractive: false
   };
 
   constructor(mission) {
     super(mission);
-    this.pattern = mission.config?.pattern || ["R", "B", "Y", "G"];
+    this.blocksLength = mission.config?.blocksLength || 4;
+    this.availableColors = mission.config?.availableColors || ["R", "B", "Y", "G"];
+    this.pattern = this.generatePattern();
     this.status = mission.status || "PENDING";
+  }
+
+  generatePattern() {
+    const colors = [...this.availableColors];
+    const pattern = [];
+    for (let i = 0; i < this.blocksLength && colors.length > 0; i++) {
+      const idx = Math.floor(Math.random() * colors.length);
+      pattern.push(colors.splice(idx, 1)[0]);
+    }
+    return pattern;
   }
 
   renderConfigContent() {
@@ -17,16 +29,23 @@ class BrickMission extends MissionModule {
   }
 
   static getConfigFields(config = {}) {
-    const patternStr = Array.isArray(config.pattern) ? config.pattern.join(", ") : "";
-    return `<label style="margin-top:6px">Patrón colores (ej: R, B, Y, G)</label>
-      <input class="m-config-pattern" placeholder="R, B, Y, G" value="${escapeHtml(patternStr)}" />`;
+    const colorsStr = Array.isArray(config.availableColors) ? config.availableColors.join(", ") : "R, B, Y, G";
+    const length = config.blocksLength || 4;
+    return `<label style="margin-top:6px">Colores disponibles (ej: R, B, Y, G)</label>
+      <input class="m-config-available-colors" placeholder="R, B, Y, G" value="${escapeHtml(colorsStr)}" />
+      <label style="margin-top:6px">Número de bloques</label>
+      <input class="m-config-blocks-length" type="number" min="1" max="10" value="${length}" />`;
   }
 
   static collectConfig(mission, row) {
-    const input = row.querySelector(".m-config-pattern");
+    const colorsInput = row.querySelector(".m-config-available-colors");
+    const lengthInput = row.querySelector(".m-config-blocks-length");
     const config = {};
-    if (input && input.value) {
-      config.pattern = input.value.split(",").map(s => s.trim()).filter(Boolean);
+    if (colorsInput && colorsInput.value) {
+      config.availableColors = colorsInput.value.split(",").map(s => s.trim().toUpperCase()).filter(Boolean);
+    }
+    if (lengthInput && lengthInput.value) {
+      config.blocksLength = Math.max(1, Math.min(10, Number(lengthInput.value)));
     }
     return config;
   }

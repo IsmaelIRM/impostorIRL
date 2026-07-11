@@ -229,25 +229,30 @@ io.on("connection", (socket) => {
             config: {}
           };
           
-          // Extract type-specific config
-          if (m.config) {
-            if (m.type === "DRAW" && m.config.drawTarget) {
-              mission.config.drawTarget = String(m.config.drawTarget).slice(0, 40);
-            }
-            if (m.type === "BRICK" && m.config.pattern) {
-              mission.config.pattern = Array.isArray(m.config.pattern) 
-                ? m.config.pattern.slice(0, 8) 
-                : String(m.config.pattern).split(",").map(s => s.trim()).slice(0, 8);
-            }
-            if (m.type === "PHOTO" && m.config.photoObjects) {
-              mission.config.photoObjects = Array.isArray(m.config.photoObjects)
-                ? m.config.photoObjects.map(o => String(o).slice(0, 30)).slice(0, 10)
-                : String(m.config.photoObjects).split(",").map(o => o.trim()).slice(0, 10);
-            }
-            if (m.type === "NFC_TASK" && m.config.nfcId) {
-              mission.config.nfcId = String(m.config.nfcId).slice(0, 40);
-            }
-          }
+// Extract type-specific config
+           if (m.config) {
+             if (m.type === "DRAW" && m.config.drawTarget) {
+               mission.config.drawTarget = String(m.config.drawTarget).slice(0, 40);
+             }
+             if (m.type === "BRICK") {
+               if (m.config.availableColors) {
+                 mission.config.availableColors = Array.isArray(m.config.availableColors)
+                   ? m.config.availableColors.map(c => String(c).trim().toUpperCase()).slice(0, 10)
+                   : String(m.config.availableColors).split(",").map(c => c.trim().toUpperCase()).slice(0, 10);
+               }
+               if (m.config.blocksLength) {
+                 mission.config.blocksLength = Math.max(1, Math.min(10, Number(m.config.blocksLength)));
+               }
+             }
+             if (m.type === "PHOTO" && m.config.photoObjects) {
+               mission.config.photoObjects = Array.isArray(m.config.photoObjects)
+                 ? m.config.photoObjects.map(o => String(o).slice(0, 30)).slice(0, 10)
+                 : String(m.config.photoObjects).split(",").map(o => o.trim()).slice(0, 10);
+             }
+             if (m.type === "NFC_TASK" && m.config.nfcId) {
+               mission.config.nfcId = String(m.config.nfcId).slice(0, 40);
+             }
+           }
           
           return mission;
         })
