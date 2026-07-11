@@ -193,8 +193,7 @@ missions: player.missions.map((m) => ({
           type: missionInfo[m.missionId] ? missionInfo[m.missionId].type : "GENERIC",
           interactive: missionInfo[m.missionId] ? missionInfo[m.missionId].interactive : false,
           config: missionInfo[m.missionId] ? missionInfo[m.missionId].config : {},
-          assignedObject: m.assignedObject || null,
-          pattern: m.pattern || null,
+          metadata: m.metadata || {},
           status: m.status,
         })),
   };

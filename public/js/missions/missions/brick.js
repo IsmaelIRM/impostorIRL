@@ -8,7 +8,7 @@ class BrickMission extends MissionModule {
 
   constructor(mission) {
     super(mission);
-    this.pattern = mission.pattern || [];
+    this.pattern = mission.metadata?.pattern || [];
     this.status = mission.status || "PENDING";
   }
 

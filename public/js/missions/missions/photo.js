@@ -9,7 +9,7 @@ class PhotoMission extends MissionModule {
   constructor(mission) {
     super(mission);
     this.photoObjects = mission.config?.photoObjects || ["Objeto"];
-    this.assignedObject = mission.assignedObject || null;
+    this.assignedObject = mission.metadata?.assignedObject || null;
     this.status = mission.status || "PENDING";
   }
 

@@ -84,7 +84,7 @@ p.cardId = cardId;
        };
        // Assign specific object for PHOTO missions
        if (mission.type === "PHOTO" && Array.isArray(mission.config?.photoObjects) && mission.config.photoObjects.length > 0) {
-         playerMission.assignedObject = mission.config.photoObjects[Math.floor(Math.random() * mission.config.photoObjects.length)];
+         playerMission.metadata = { assignedObject: mission.config.photoObjects[Math.floor(Math.random() * mission.config.photoObjects.length)] };
        }
        // Generate random pattern for BRICK missions
        if (mission.type === "BRICK" && Array.isArray(mission.config?.availableColors) && mission.config.availableColors.length > 0) {
@@ -95,7 +95,7 @@ p.cardId = cardId;
            const idx = Math.floor(Math.random() * colors.length);
            pattern.push(colors.splice(idx, 1)[0]);
          }
-         playerMission.pattern = pattern;
+         playerMission.metadata = { pattern };
        }
        return playerMission;
      });
