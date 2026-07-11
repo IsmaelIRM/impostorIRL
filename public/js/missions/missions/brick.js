@@ -37,13 +37,13 @@ class BrickMission extends MissionModule {
         width:40px;height:40px;border-radius:8px;margin:4px;
         background:${this.getColor(color)};
         border:2px solid var(--line);
-        cursor:pointer;
       "></div>`
     ).join('');
 
     return `
-      <p style="font-size:0.9rem;margin:0 0 10px 0">Reproduce el patrón de colores:</p>
+      <p style="font-size:0.9rem;margin:0 0 10px 0">Orden de colores a reproducir:</p>
       <div style="display:flex;flex-wrap:wrap;justify-content:center">${patternDisplay}</div>
+      <button class="good" data-complete-popup="${this.id}" style="margin-top:15px;width:100%">✓ Completar</button>
     `;
   }
 
@@ -57,21 +57,16 @@ class BrickMission extends MissionModule {
   }
 
   mount(ctx) {
-    // Click on pattern pieces to complete mission
-    document.querySelectorAll(`[data-mission-id="${this.id}"] .brick-piece`).forEach((piece) => {
-      piece.addEventListener('click', () => {
-        piece.classList.add('clicked');
-        // Check if all pieces have been clicked
-        const allClicked = Array.from(document.querySelectorAll(`[data-mission-id="${this.id}"] .brick-piece`)).every(p => p.classList.contains('clicked'));
-        if (allClicked) {
-          ctx.socket.emit("task:toggle", {
-            code: ctx.code,
-            sessionToken: ctx.sessionToken,
-            missionId: this.id,
-          });
-        }
+    const completeBtn = document.querySelector(`[data-complete-popup="${this.id}"]`);
+    if (completeBtn) {
+      completeBtn.addEventListener("click", () => {
+        ctx.socket.emit("task:toggle", {
+          code: ctx.code,
+          sessionToken: ctx.sessionToken,
+          missionId: this.id,
+        });
       });
-    });
+    }
   }
 
   getColor(color) {
