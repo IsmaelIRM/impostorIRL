@@ -3,6 +3,8 @@ import * as lobby from "./screens/lobby.js";
 import * as player from "./screens/player.js";
 import * as meeting from "./screens/meeting.js";
 import * as results from "./screens/results.js";
+import { missionLoader } from "./missions/loader.js";
+import { sabotageLoader } from "./sabotages/loader.js";
 
 const screens = { landing, lobby, player, meeting, results };
 
@@ -116,13 +118,21 @@ function route() {
   return "player";
 }
 
-function render() {
+async function render() {
   clearTimers();
   const name = route();
   ctx.screen = name;
   const app = document.getElementById("app");
   const mod = screens[name] || screens.landing;
-  app.innerHTML = mod.render(ctx);
+  
+  if (typeof mod.render === "function") {
+    if (mod.render.constructor.name === 'AsyncFunction') {
+      app.innerHTML = await mod.render(ctx);
+    } else {
+      app.innerHTML = mod.render(ctx);
+    }
+  }
+  
   if (typeof mod.mount === "function") mod.mount(ctx);
 }
 
@@ -157,23 +167,27 @@ socket.on("game:started", (data) => {
 });
 socket.on("room:state", (data) => {
   ctx.me = data;
-  if (data.status) {
-    if (ctx.room) ctx.room.status = data.status;
-    else ctx.room = { status: data.status };
+  // Update room with sabotage and player sabotage data
+  if (!ctx.room) {
+    ctx.room = {};
   }
+  if (data.status) ctx.room.status = data.status;
+  if (data.sabotages) ctx.room.sabotages = data.sabotages;
+  if (data.timeLimitEndsAt !== undefined) ctx.room.timeLimitEndsAt = data.timeLimitEndsAt;
+  if (data.timeLimitSec !== undefined) ctx.room.timeLimitSec = data.timeLimitSec;
   if (data.winner) {
     ctx.winner = { team: data.winner, reason: data.winnerReason };
   }
-// Sync meeting state for late (re)joiners so the timer matches everyone else.
-   if (data.meeting && data.meeting.alivePlayers) {
-      ctx.meetingPlayers = data.meeting.alivePlayers;
-      ctx.meetingEndsAt = data.meeting.endsAt;
-      ctx.meetingPhase = data.meeting.phase;
-      ctx.meetingVote = data.meeting.voteCast; // restore vote target
-      if (ctx.screen === "meeting" && ctx.meetingVote !== undefined) {
-        render(); // Re-render to show restored vote
-      }
+  // Sync meeting state for late (re)joiners so the timer matches everyone else.
+  if (data.meeting && data.meeting.alivePlayers) {
+    ctx.meetingPlayers = data.meeting.alivePlayers;
+    ctx.meetingEndsAt = data.meeting.endsAt;
+    ctx.meetingPhase = data.meeting.phase;
+    ctx.meetingVote = data.meeting.voteCast; // restore vote target
+    if (ctx.screen === "meeting" && ctx.meetingVote !== undefined) {
+      render(); // Re-render to show restored vote
     }
+  }
   render();
 });
 socket.on("task:progress", (data) => {
@@ -228,14 +242,31 @@ socket.on("room:reset", () => {
   render();
 });
 socket.on("player:kicked", (data) => {
-  if (ctx.playerId === data.playerId) {
-    ctx.sessionToken = null;
-    ctx.me = null;
-    ctx.room = null;
-    toast("Has sido expulsado de la sala.");
+    if (ctx.playerId === data.playerId) {
+      ctx.sessionToken = null;
+      ctx.me = null;
+      ctx.room = null;
+      toast("Has sido expulsado de la sala.");
+      render();
+    }
+  });
+
+  // Sabotage events
+  socket.on("sabotage:started", (data) => {
+    ctx.sabotage = data;
+    toast("🚨 ¡Sabotaje activado! Resuelvelo antes de que termine el tiempo.");
     render();
-  }
-});
+  });
+
+  socket.on("sabotage:resolved", (data) => {
+    ctx.sabotage = null;
+    if (data.success) {
+      toast("✓ Sabotaje resuelto. Puedes seguir con tus misiones.");
+    } else {
+      toast("❌ El sabotaje expiró. Los impostores ganan.");
+    }
+    render();
+  });
 
 function renamePlayer(name) {
   socket.emit("player:rename", { code: ctx.code, sessionToken: ctx.sessionToken, name });
@@ -274,10 +305,14 @@ function joinRoom(code, name) {
   });
 }
 
-window.AU = { ctx, createRoom, joinRoom, toast, render, renamePlayer };
+window.AU = { ctx, createRoom, joinRoom, toast, render, renamePlayer, missionLoader, sabotageLoader };
 
 // ---- boot ----
 syncFromUrl();
+// Initialize mission loader
+  missionLoader.loadAllMissions().catch(e => console.warn('Failed to load missions:', e));
+  // Initialize sabotage loader
+  sabotageLoader.loadAllSabotages().catch(e => console.warn('Failed to load sabotages:', e));
 // restore token for this code from localStorage if present
 if (ctx.code) {
   try {

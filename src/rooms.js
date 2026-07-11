@@ -24,8 +24,8 @@ function createRoom() {
     numImpostors: 1,
     missions: defaultMissions(),
     mapImageUrl: "/maps/placeholder.png",
-    players: new Map(), // id -> Player
-    meeting: null, // { reporterId, votes: Map<sessionToken,targetId|null>, endsAt }
+    players: new Map(),
+    meeting: null,
     winner: null,
     winnerReason: null,
     createdAt: Date.now(),
@@ -35,6 +35,13 @@ function createRoom() {
     meetingSec: 120,
     timeLimitSec: null,
     timeLimitEndsAt: null,
+    sabotages: [], // Array of active sabotages in room
+    sabotageCooldowns: {},
+    sabotageConfig: {
+      NFC: { enabled: true },
+      LIGHTS: { enabled: true },
+      REACTOR: { enabled: true }
+    }
   };
   rooms.set(code, room);
   return room;
@@ -58,6 +65,7 @@ function addPlayer(room, name, isAdmin) {
     alive: true,
     killCooldownUntil: 0,
     missions: [],
+    playerSabotages: [], // Sabotages targeting this player
   };
   room.players.set(id, player);
   return player;
@@ -90,12 +98,23 @@ function lobbyView(room) {
     meetingSec: room.meetingSec,
     killCooldownSec: room.killCooldownSec,
     timeLimitSec: room.timeLimitSec,
+    timeLimitEndsAt: room.timeLimitEndsAt,
     mapImageUrl: room.mapImageUrl,
+    sabotageConfig: room.sabotageConfig,
+    sabotages: room.sabotages.map(s => ({
+      id: s.id,
+      type: s.type,
+      endsAt: s.endsAt,
+      targetZones: s.targetZones || []
+    })),
     missions: room.missions.map((m) => ({
       id: m.id,
       name: m.name,
       zone: m.zone,
       desc: m.desc,
+      type: m.type || "GENERIC",
+      interactive: m.interactive || false,
+      config: m.config || {}
     })),
     players: Array.from(room.players.values()).map((p) => {
       const base = {
@@ -127,16 +146,30 @@ function playerView(room, player) {
     acc[m.id] = m;
     return acc;
   }, {});
-  return {
+return {
     status: room.status,
     role: player.role,
     cardId: player.cardId,
     alive: player.alive,
     killCooldownUntil: player.killCooldownUntil,
     mapImageUrl: room.mapImageUrl,
+    timeLimitEndsAt: room.timeLimitEndsAt,
+    timeLimitSec: room.timeLimitSec,
     winner: room.winner,
     winnerReason: room.winnerReason,
-meeting: room.meeting
+    sabotages: room.sabotages.map(s => ({
+      id: s.id,
+      type: s.type,
+      endsAt: s.endsAt,
+      targetZones: s.targetZones || []
+    })), // All room sabotages
+    playerSabotages: (player.playerSabotages || []).map(s => ({
+      id: s.id,
+      type: s.type,
+      endsAt: s.endsAt,
+      targetZones: s.targetZones || []
+    })), // Sabotages targeting this player
+    meeting: room.meeting
         ? {
             reporterId: room.meeting.reporterId,
             endsAt: room.meeting.endsAt,
@@ -152,13 +185,17 @@ meeting: room.meeting
                 : undefined,
           }
         : null,
-    missions: player.missions.map((m) => ({
-      id: m.missionId,
-      name: missionInfo[m.missionId] ? missionInfo[m.missionId].name : "",
-      zone: missionInfo[m.missionId] ? missionInfo[m.missionId].zone : "",
-      desc: missionInfo[m.missionId] ? missionInfo[m.missionId].desc : "",
-      status: m.status,
-    })),
+missions: player.missions.map((m) => ({
+         id: m.missionId,
+         name: missionInfo[m.missionId] ? missionInfo[m.missionId].name : "",
+         zone: missionInfo[m.missionId] ? missionInfo[m.missionId].zone : "",
+         desc: missionInfo[m.missionId] ? missionInfo[m.missionId].desc : "",
+         type: missionInfo[m.missionId] ? missionInfo[m.missionId].type : "GENERIC",
+         interactive: missionInfo[m.missionId] ? missionInfo[m.missionId].interactive : false,
+         config: missionInfo[m.missionId] ? missionInfo[m.missionId].config : {},
+         assignedObject: m.assignedObject || null,
+         status: m.status,
+       })),
   };
 }
 

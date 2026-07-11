@@ -1,0 +1,62 @@
+1. Misiones
+  MUY IMPORTANTE - Que las misiones se guarden entre sesiones y se puedan modificar con el servidor apagado. Propongo formato JSON.
+    a) Dibujar:
+        · Pestaña interactiva
+        · Objeto, cosa, persona... a dibujar unico por cada persona y misión
+        · 1 o 2 misiones
+    b) Ladrillo:
+        · Pestaña interactiva
+        · Orden personalizado de colores en patron de C-C-C | C-C-C (Uno abajo de otro vaya)
+        · Cada C puede tomar uno de estos valores (colores):
+            - Rojo
+            - Azul
+            - Amarillo
+            - Verde
+        · 3 o 4 misiones
+    c) Canasta:
+        · Pestaña estática
+        · Meter un objeto, a pensar, dentro de una canasta, a pensar que va a ser la canasta.
+        · 1 Misión
+    d) Nerf:
+        · Pestaña estática.
+        · Descripción: Dispara a los Pakistanies.
+        · Zona: Por ver.
+        · 1 Mision
+    e) Foto:
+        · Pestaña interactiva
+        · Descripción: Hazte una foto con el objeto X
+            - X: Lista de objetos disponibles para hacerse la foto, objetos va linkado a sala. El servidor seleccionará uno y se lo asignara a jugador y misión.
+        - 1 o 2 misiones
+    f) Limpiafondos:
+        · Pestaña estática
+        · Descripción: Recoge las gafas del fondo de la piscina. Las puedes recoger con la red.
+        · Zona: Piscina
+        · 1 Misión
+
+2. Sabotaje (Impostores)
+    Añadir una opción dentro del rol de impostores de activar misiones de sabotaje.
+    Si no se arregla o cumple el requisito del sabotaje en X tiempo, gana el impostor.
+    Cada sabotaje tiene un cooldown de 4 minutos.
+    Cuando se activa el sabotaje, jugadores reciben alarma.
+    Durante sabotaje se pueden hacer misiones, ya cada jugador elige si se arriesga a ir al sabotaje o no
+    Cuando se pulse al sabotaje, te salta popup que te describe que hay que hacer para desactivar el sabotaje.
+    Propuestas de sabotaje:
+        · Tarjetas NFC:
+            - 2 tripulantes diferentes tienen que escanear tarjetas NFCs ubicadas en diferentes posiciones (Cercanas).
+            - Escanear ambas con una diferencia de tiempo de 10 segundos.
+            - Se puede reciclar para dos zonas
+
+3. Interfaz
+    a) No se puede cambiar el nombre del jugador (No funciona botón)
+    b) Interfaz del Administrador
+        ·Organizar por secciones/popups para cada tipo de configuracion.
+            - Organizar la gestion de misiones separadas, ya que ocupan mucho
+            - Para los sabotajes poder decir cuales son los sabotajes, cooldown... (el cooldown puede hacerse que si lo pones a 0 o -1 sea de un solo uso por partida)
+            - Hacer que los sabotajes esten dentro de las configuraciones de asesinos.
+        · Ningun número de tiempo hardcodeado.
+        · Las misiones tienen un 4to campo de "Interactivo", sera un slide para seleccionar la parte interactiva que va a tener. Por ejemplo, el dibujar. No es obligatorio ya que puede ser estatica y ya.
+        · La selección de impostores por partida hacerla de escribir número, para mayor personalizacion.
+    c) Las misiones interactivas en partida tienen un boton para que te salga el popup que te enseña la parte interactiva. Hacer que sea por llamadas a eventos que enseñen como dibujar la pantalla para mayor modularidad.
+    d) Añadir tarjeta NFCs para las misiones que utilicen NFCs.
+    e) Los impostores pueden ver quienes son los impostores.
+    f) Un impostor no puede matar a otro impostor.

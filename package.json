@@ -4,7 +4,8 @@
   "description": "Real-life Among Us party web app (non-commercial, one-off)",
   "main": "server.js",
   "scripts": {
-    "start": "node server.js"
+    "start": "node server.js",
+    "build": "node scripts/generate-manifest.js"
   },
   "license": "UNLICENSED",
   "dependencies": {

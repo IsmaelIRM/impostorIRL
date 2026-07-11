@@ -1,0 +1,13 @@
+{
+  "version": "1.0",
+  "generated": "2026-07-11T05:32:22.000Z",
+  "missions": [
+    { "id": "DRAW", "path": "./missions/draw.js" },
+    { "id": "BRICK", "path": "./missions/brick.js" },
+    { "id": "BASKET", "path": "./missions/basket.js" },
+    { "id": "NERF", "path": "./missions/nerf.js" },
+    { "id": "PHOTO", "path": "./missions/photo.js" },
+    { "id": "CLEAN", "path": "./missions/clean.js" },
+    { "id": "NFC_TASK", "path": "./missions/nfctask.js" }
+  ]
+}

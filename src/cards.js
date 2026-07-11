@@ -76,10 +76,18 @@ function assignCards(room) {
     p.cardId = cardId;
     p.alive = true;
     p.killCooldownUntil = 0;
-    p.missions = indices.map((i) => ({
-      missionId: room.missions[i].id,
-      status: "PENDING",
-    }));
+    p.missions = indices.map((i) => {
+      const mission = room.missions[i];
+      const playerMission = {
+        missionId: mission.id,
+        status: "PENDING",
+      };
+      // Assign specific object for PHOTO missions
+      if (mission.type === "PHOTO" && Array.isArray(mission.config?.photoObjects) && mission.config.photoObjects.length > 0) {
+        playerMission.assignedObject = mission.config.photoObjects[Math.floor(Math.random() * mission.config.photoObjects.length)];
+      }
+      return playerMission;
+    });
   }
 
   room.numImpostors = numImpostors;

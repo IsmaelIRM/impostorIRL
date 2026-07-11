@@ -1,0 +1,34 @@
+// Sabotage config for admin panel
+const sabotageConfig = {
+  types: {
+    NFC: {
+      name: "Reparación NFC",
+      duration: 240, // 4 minutes
+      cooldowns: {
+        global: 240,
+        individual: 0 // 0 = once per game
+      },
+      requiresZones: true
+    },
+    LIGHTS: {
+      name: "Luces apagadas",
+      duration: 120,
+      cooldowns: {
+        global: 180,
+        individual: 0
+      },
+      requiresZones: false
+    },
+    REACTOR: {
+      name: "Reactor crítico",
+      duration: 180,
+      cooldowns: {
+        global: 240,
+        individual: 0
+      },
+      requiresZones: false
+    }
+  }
+};
+
+export { sabotageConfig };

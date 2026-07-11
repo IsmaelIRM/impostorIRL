@@ -3,33 +3,21 @@ services:
     build: .
     container_name: reallife-amongus
     ports:
-      # Optional when using the Cloudflare Tunnel below (handy for local/LAN access).
       - "3000:3000"
     environment:
-      # Optional override. Leave empty to auto-derive join/admin URLs from the
-      # incoming request's Host/Origin (works with ngrok, Duck DNS AND Cloudflare).
-      # PUBLIC_BASE_URL: "https://tu-subdominio.tudominio.com"
+      # Leave empty to auto-derive URLs from request (works with ngrok, Cloudflare, etc.)
       PUBLIC_BASE_URL: ""
     volumes:
-      # Persist uploaded map images across container restarts.
+      # Persist uploaded map images across container restarts
       - ./uploads:/app/public/uploads
     restart: unless-stopped
 
-  # Cloudflare Tunnel sidecar — public HTTPS URL with no router port-forward.
-  # The image is distroless (no shell), so we use its native `cloudflared` entrypoint
-  # with a plain `command` (no `sh -c`).
-  #
-  # Default = QUICK TUNNEL: prints a https://*.trycloudflare.com URL in the logs
-  # (docker compose logs -f cloudflared). No Cloudflare account or domain needed.
+  # Cloudflare Tunnel sidecar - provides public HTTPS without port forwarding
+  # Prints a random *.trycloudflare.com URL in logs (docker compose logs -f cloudflared)
   cloudflared:
     image: cloudflare/cloudflared:latest
     container_name: reallife-amongus-tunnel
     command: ["tunnel", "--url", "http://amongus:3000", "--no-autoupdate"]
-    # --- STABLE URL on your own domain (no account-less quick tunnel) ---
-    # 1) Get CF_TOKEN (see README "Exponerlo con Cloudflare Tunnel").
-    # 2) Comment the quick-tunnel `command` above and uncomment the line below,
-    #    then start with:  CF_TOKEN=xxx docker compose up -d
-    # command: ["tunnel", "run", "--token", "${CF_TOKEN}"]
     depends_on:
       - amongus
     restart: unless-stopped

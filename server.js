@@ -14,6 +14,7 @@ const {
   adminUrl,
   lobbyView,
   playerView,
+  rooms,
 } = require("./src/rooms");
 const { defaultMissions } = require("./src/cards");
 const win = require("./src/win");
@@ -79,6 +80,7 @@ function endGame(room, result) {
   room.winnerReason = result.reason;
   room.endedAt = Date.now();
   room.meeting = null;
+  room.sabotages = [];
   io.to(room.code).emit("game:won", { team: result.team, reason: result.reason });
   if (result.team === "CREW") io.to(room.code).emit("game:alarm", {});
   emitLobby(room);
@@ -176,7 +178,6 @@ io.on("connection", (socket) => {
   socket.on("room:join", (payload, ack) => {
     const room = getRoom(payload && payload.code);
     if (!room) return ack && ack({ error: "Sala no encontrada." });
-    const code = room.code;
 
     let player = null;
     if (payload.sessionToken) {
@@ -192,6 +193,7 @@ io.on("connection", (socket) => {
     }
     player.socketId = socket.id;
     player.connected = true;
+    const code = room.code;
     socket.join(code);
 
     ack &&
@@ -216,12 +218,39 @@ io.on("connection", (socket) => {
 
     if (Array.isArray(payload.missions)) {
       const missions = payload.missions
-        .map((m) => ({
-          id: m.id && /^[0-9a-f-]{8,}$/i.test(m.id) ? m.id : uuid(),
-          name: String(m.name || "").slice(0, 60),
-          zone: String(m.zone || "").slice(0, 40),
-          desc: String(m.desc || "").slice(0, 200),
-        }))
+        .map((m) => {
+          const mission = {
+            id: m.id && /^[0-9a-f-]{36}$/i.test(m.id) ? m.id : uuid(),
+            name: String(m.name || "").slice(0, 60),
+            zone: String(m.zone || "").slice(0, 40),
+            desc: String(m.desc || "").slice(0, 200),
+            type: String(m.type || "GENERIC").slice(0, 20),
+            interactive: m.interactive === true,
+            config: {}
+          };
+          
+          // Extract type-specific config
+          if (m.config) {
+            if (m.type === "DRAW" && m.config.drawTarget) {
+              mission.config.drawTarget = String(m.config.drawTarget).slice(0, 40);
+            }
+            if (m.type === "BRICK" && m.config.pattern) {
+              mission.config.pattern = Array.isArray(m.config.pattern) 
+                ? m.config.pattern.slice(0, 8) 
+                : String(m.config.pattern).split(",").map(s => s.trim()).slice(0, 8);
+            }
+            if (m.type === "PHOTO" && m.config.photoObjects) {
+              mission.config.photoObjects = Array.isArray(m.config.photoObjects)
+                ? m.config.photoObjects.map(o => String(o).slice(0, 30)).slice(0, 10)
+                : String(m.config.photoObjects).split(",").map(o => o.trim()).slice(0, 10);
+            }
+            if (m.type === "NFC_TASK" && m.config.nfcId) {
+              mission.config.nfcId = String(m.config.nfcId).slice(0, 40);
+            }
+          }
+          
+          return mission;
+        })
         .filter((m) => m.name.trim())
         .slice(0, 20);
       if (missions.length >= 1) room.missions = missions;
@@ -243,6 +272,13 @@ io.on("connection", (socket) => {
           : Math.max(60, Math.min(7200, Number(payload.timeLimitSec)));
     }
     if (payload.mapImageUrl) room.mapImageUrl = payload.mapImageUrl;
+    if (payload.sabotageConfig) {
+      room.sabotageConfig = {
+        NFC: { enabled: payload.sabotageConfig.NFC?.enabled !== false },
+        LIGHTS: { enabled: payload.sabotageConfig.LIGHTS?.enabled !== false },
+        REACTOR: { enabled: payload.sabotageConfig.REACTOR?.enabled !== false }
+      };
+    }
 
     ack && ack({ ok: true });
     emitLobby(room);
@@ -253,8 +289,13 @@ io.on("connection", (socket) => {
     if (!room || room.adminToken !== payload.adminToken)
       return ack && ack({ error: "No autorizado." });
     if (room.status !== "LOBBY") return ack && ack({ error: "Ya empezada." });
-    if (room.players.size < 3)
+    // Allow single player for testing if admin presses start twice quickly (within 5 seconds)
+    const isSinglePlayerTest = room.players.size === 1 && room._testStartAllowed;
+    if (room.players.size < 3 && !isSinglePlayerTest)
       return ack && ack({ error: "Se necesitan al menos 3 jugadores." });
+    
+    // Clear test flag
+    delete room._testStartAllowed;
 
     assignCards(room);
     room.status = "RUNNING";
@@ -267,6 +308,17 @@ io.on("connection", (socket) => {
     }
     emitLobby(room);
     ack && ack({ ok: true });
+  });
+
+  // Enable single-player test mode (second click on start button)
+  socket.on("admin:test-start", (payload, ack) => {
+    const room = getRoom(payload && payload.code);
+    if (!room || room.adminToken !== payload.adminToken)
+      return;
+    if (room.players.size === 1) {
+      room._testStartAllowed = true;
+      ack && ack({ ok: true });
+    }
   });
 
   socket.on("task:toggle", (payload) => {
@@ -398,12 +450,14 @@ io.on("connection", (socket) => {
       p.alive = true;
       p.killCooldownUntil = 0;
       p.missions = [];
+      p.playerSabotages = [];
     }
     room.status = "LOBBY";
     room.winner = null;
     room.winnerReason = null;
     room.meeting = null;
     room.timeLimitEndsAt = null;
+    room.sabotages = [];
     if (room._meetingTimer) clearTimeout(room._meetingTimer);
     emitRoomState(room);
   });
@@ -420,6 +474,7 @@ io.on("connection", (socket) => {
     room.winner = null;
     room.winnerReason = null;
     room.meeting = null;
+    room.sabotages = [];
     room.pendingMeeting = null;
     room.timeLimitSec = null;
     room.timeLimitEndsAt = null;
@@ -433,6 +488,7 @@ io.on("connection", (socket) => {
       adminPlayer.alive = true;
       adminPlayer.killCooldownUntil = 0;
       adminPlayer.missions = [];
+      adminPlayer.playerSabotages = [];
       adminPlayer.connected = true;
       adminPlayer.socketId = socket.id;
       room.players.set(adminPlayer.id, adminPlayer);
@@ -455,7 +511,6 @@ io.on("connection", (socket) => {
     if (player.socketId) io.to(player.socketId).emit("room:state", playerView(room, player));
     emitLobby(room);
   });
-
 
   socket.on("disconnect", () => {
     for (const room of require("./src/rooms").rooms.values()) {
@@ -480,6 +535,168 @@ io.on("connection", (socket) => {
     io.to(room.code).emit("player:kicked", { playerId: payload.playerId });
     emitLobby(room);
   });
+
+  // Impostor activates sabotage
+  socket.on("sabotage:activate", (payload) => {
+    const room = getRoom(payload && payload.code);
+    if (!room || room.status !== "RUNNING") return;
+    
+    const player = Array.from(room.players.values()).find(
+      (p) => p.sessionToken === payload.sessionToken
+    );
+    if (!player || player.role !== "IMPOSTOR" || !player.alive) return;
+    
+    // Check cooldown
+    const lastSabotage = room.sabotageCooldowns?.[room.code] || 0;
+    if (Date.now() < lastSabotage) return;
+    
+    const sabotageTypes = {
+      NFC: { duration: 240, cooldown: 240, zones: ["Pasillo", "Cocina"] },
+      LIGHTS: { duration: 120, cooldown: 180 },
+      REACTOR: { duration: 180, cooldown: 240 }
+    };
+    
+    const sabotage = sabotageTypes[payload.type];
+    if (!sabotage) return;
+    
+    // Check if sabotage is enabled in room config
+    if (room.sabotageConfig?.[payload.type]?.enabled === false) return;
+    
+    const sabotageId = uuid();
+    const roomSabotage = {
+      id: sabotageId,
+      type: payload.type,
+      endsAt: Date.now() + sabotage.duration * 1000,
+      targetZones: sabotage.zones || [],
+      durationSec: sabotage.duration,
+      cooldownSec: sabotage.cooldown,
+      active: true,
+      activations: [{ playerId: player.id, zone: sabotage.zones?.[0] || "Unknown", timestamp: Date.now() }]
+    };
+    
+    room.sabotages.push(roomSabotage);
+    
+    // Target all alive crew players with this sabotage
+    for (const p of room.players.values()) {
+      if (p.alive && p.role === "CREW") {
+        p.playerSabotages.push({ ...roomSabotage });
+      }
+    }
+    
+    // Set cooldown (duration + cooldown combined)
+    room.sabotageCooldowns[room.code] = Date.now() + (sabotage.duration + sabotage.cooldown) * 1000;
+    
+    io.to(room.code).emit("sabotage:started", {
+      id: sabotageId,
+      type: payload.type,
+      endsAt: roomSabotage.endsAt,
+      targetZones: sabotage.zones || [],
+      duration: sabotage.duration
+    });
+    
+    emitRoomState(room);
+  });
+
+  // Sabotage NFC scan
+  socket.on("sabotage:nfcScan", (payload) => {
+    const room = getRoom(payload && payload.code);
+    if (!room) return;
+    
+    const roomSabotage = room.sabotages.find(s => s.id === payload.sabotageId && s.active);
+    if (!roomSabotage) return;
+    
+    const player = Array.from(room.players.values()).find(
+      (p) => p.sessionToken === payload.sessionToken
+    );
+    if (!player || !player.alive) return;
+    
+    // Record this scan
+    roomSabotage.activations.push({ 
+      playerId: player.id, 
+      zone: payload.zone || "Unknown",
+      timestamp: Date.now() 
+    });
+    
+    // Check NFC resolution (2 different players in different zones within 10s)
+    const activations = roomSabotage.activations;
+    for (let i = 0; i < activations.length - 1; i++) {
+      const first = activations[i];
+      const second = activations[activations.length - 1];
+      const diff = second.timestamp - first.timestamp;
+      const zonesMatch = first.zone !== second.zone;
+      const playersMatch = first.playerId !== second.playerId;
+      
+      if (diff <= 10000 && zonesMatch && playersMatch) {
+        roomSabotage.active = false;
+        io.to(room.code).emit("sabotage:resolved", {
+          id: roomSabotage.id,
+          type: roomSabotage.type,
+          success: true
+        });
+        
+        // Remove sabotage from room and all players
+        room.sabotages = room.sabotages.filter(sab => sab.id !== roomSabotage.id);
+        for (const p of room.players.values()) {
+          p.playerSabotages = p.playerSabotages.filter(s => s.id !== roomSabotage.id);
+        }
+        
+        emitRoomState(room);
+        return;
+      }
+    }
+    
+    emitRoomState(room);
+  });
+
+  // Check sabotage expiration and game time limit
+  setInterval(() => {
+    for (const room of rooms.values()) {
+      // Check game time limit expiration
+      if (room.status === "RUNNING" && room.timeLimitEndsAt && Date.now() > room.timeLimitEndsAt) {
+        room.winner = "IMPOSTOR";
+        room.winnerReason = "Time limit exceeded";
+        room.status = "ENDED";
+        room.sabotages = [];
+        for (const p of room.players.values()) {
+          p.playerSabotages = [];
+        }
+        io.to(room.code).emit("game:won", { 
+          team: "IMPOSTOR", 
+          reason: "Tiempo límite alcanzado - Los impostores ganan" 
+        });
+        continue;
+      }
+      
+      // Check sabotage expiration
+      for (const s of room.sabotages) {
+        if (s.active && Date.now() > s.endsAt) {
+          s.active = false;
+          io.to(room.code).emit("sabotage:resolved", {
+            id: s.id,
+            type: s.type,
+            success: false
+          });
+          
+          const resolvedId = s.id;
+          // Remove sabotage from room and all players
+          room.sabotages = room.sabotages.filter(sab => sab.id !== resolvedId);
+          for (const p of room.players.values()) {
+            p.playerSabotages = p.playerSabotages.filter(sab => sab.id !== resolvedId);
+          }
+          
+          // Impostor wins on sabotage failure
+          room.winner = "IMPOSTOR";
+          room.winnerReason = "Sabotage failed";
+          room.status = "ENDED";
+          io.to(room.code).emit("game:won", { 
+            team: "IMPOSTOR", 
+            reason: "Sabotaje no resuelto" 
+          });
+          break;
+        }
+      }
+    }
+  }, 1000);
 });
 
 const PORT = process.env.PORT || 3000;

@@ -47,9 +47,6 @@ function checkWin(room) {
   if (aliveImpostors(room).length >= aliveCrew(room).length) {
     return { team: "IMPOSTOR", reason: "equality" };
   }
-  if (room.timeLimitSec && room.timeLimitEndsAt && Date.now() >= room.timeLimitEndsAt) {
-    return { team: "IMPOSTOR", reason: "timeout" };
-  }
   return null;
 }
 
